@@ -16,13 +16,16 @@ PulsePoint is a fitness and wellness application that helps users track workouts
 ## Scrum Team
 
 ### Product Owner
-TBD
+Sean Enohmbi
 
 ### Scrum Master
-TBD
+Jennifer Vazquez
 
 ### Developers
-TBD
+Ananya Patchigolla
+Niahya Green
+Diya Patel
+Mohamed Shire
 
 ## Sprint 1 Goal
 
