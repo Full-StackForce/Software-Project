@@ -1,11 +1,12 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import index as indexRoute
-from dependencies.config import conf
-from routers import auth
 from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
+
+from routers import index as indexRoute
+from routers import goal as goalRoute
+from routers import auth
+from dependencies.config import conf
 
 
 app = FastAPI()
@@ -18,15 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(goalRoute.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
-print("AUTH ROUTES:")
-for route in auth.router.routes:
-    print(route.path)
 
-print("APP ROUTES:")
-for route in app.routes:
-    print(route.path)
-    
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
@@ -49,6 +44,7 @@ def read_root():
         </body>
     </html>
     """
+
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page():
@@ -98,6 +94,7 @@ def login_page():
     </body>
     </html>
     """
+
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard():
