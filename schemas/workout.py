@@ -6,7 +6,7 @@ class WorkoutCreate(BaseModel):
     user_id: int = Field(..., example=1)
     type: str = Field(..., example="Cardio")
     duration_minutes: int = Field(..., example=45)
-    calories_burned: int = Field(..., example=320)
+    calories_burned: int| None = Field(None, example=320)
     notes: str | None = Field(None, example="Morning run around the park")
 
 

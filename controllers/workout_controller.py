@@ -15,7 +15,7 @@ def create_workout(payload: WorkoutCreate) -> Workout:
         user_id=payload.user_id,
         type=payload.type,
         duration_minutes=payload.duration_minutes,
-        calories_burned=payload.calories_burned,
+        calories_burned=payload.calories_burned if payload.calories_burned is not None else 0,
         notes=payload.notes,
         completed_at=datetime.utcnow(),
     )

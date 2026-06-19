@@ -13,7 +13,3 @@ def load_routes(app: FastAPI) -> None:
     app.include_router(habit_router.router)
     app.include_router(goal_router.router)
     app.include_router(dashboard_router.router)
-
-    @app.get("/")
-    def read_root() -> dict:
-        return {"message": "PulsePoint API is up"}

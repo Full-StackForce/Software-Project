@@ -6,7 +6,7 @@ from dependencies.config import conf
 
 
 app = FastAPI()
-
+indexRoute.load_routes(app)
 from fastapi.responses import HTMLResponse
 
 @app.get("/", response_class=HTMLResponse)

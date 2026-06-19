@@ -8,6 +8,6 @@ class Workout:
     user_id: int
     type: str
     duration_minutes: int
-    calories_burned: int
+    calories_burned: int | None
     notes: str | None
     completed_at: datetime
