@@ -1,13 +1,17 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+
 from routers import index as indexRoute
+from routers import goal as goalRoute
 from dependencies.config import conf
 
 
 app = FastAPI()
 
-from fastapi.responses import HTMLResponse
+app.include_router(goalRoute.router)
+
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
