@@ -23,7 +23,8 @@ def read_root():
             <h2>Features</h2>
             <ul>
                 <li>Habit Tracking</li>
-                <li><a href="/workouts/new">Workout Tracking - Log a Workout</a></li>                <li>Goals</li>
+                <li><a href="/workouts/new">Workout Tracking </a></li>                
+                <li>Goals</li>
                 <li>Dashboard</li>
             </ul>
         </body>
