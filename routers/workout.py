@@ -47,10 +47,10 @@ def new_workout_form():
 
 @router.post("/new", response_class=HTMLResponse)
 def submit_workout_form(
-    user_id: int= Form(...),
+    user_id: int = Form(...),
     type: str = Form(...),
-    duration_minutes: int= Form(...),
-    notes: str= Form(...),
+    duration_minutes: int = Form(...),
+    notes: str = Form(""),
 ):
     payload = WorkoutCreate(
         user_id=user_id,
