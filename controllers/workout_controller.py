@@ -18,6 +18,7 @@ def create_workout(payload: WorkoutCreate) -> Workout:
         calories_burned=payload.calories_burned,
         notes=payload.notes,
         completed_at=datetime.utcnow(),
+        mood_level=payload.mood_level,
     )
     _workouts.append(workout)
     _next_workout_id += 1
