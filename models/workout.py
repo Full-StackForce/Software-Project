@@ -10,4 +10,6 @@ class Workout:
     duration_minutes: int
     calories_burned: int
     notes: str | None
+    mood_level: int
     completed_at: datetime
+
