@@ -29,3 +29,7 @@ def create_goal(payload: GoalCreate) -> Goal:
 
 def list_goals() -> List[Goal]:
     return list(_goals)
+
+
+def list_active_goals() -> List[Goal]:
+    return [goal for goal in _goals if not goal.completed]
