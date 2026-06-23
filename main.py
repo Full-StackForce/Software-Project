@@ -183,6 +183,23 @@ def login_page():
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard():
     return """
-    <h1>Dashboard</h1>
-    <p>Welcome! You are logged in.</p>
+    <html>
+    <head>
+        <title>PulsePoint Dashboard</title>
+    </head>
+    <body>
+        <h1>PulsePoint Dashboard</h1>
+
+        <h2>Welcome Back!</h2>
+
+        <ul>
+            <li>View Habits</li>
+            <li>Track Workouts</li>
+            <li>Manage Goals</li>
+            <li>View Progress</li>
+        </ul>
+
+        <a href="/login">Logout</a>
+    </body>
+    </html>
     """

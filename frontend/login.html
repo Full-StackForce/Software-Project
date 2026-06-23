@@ -56,7 +56,7 @@ async function login() {
 
         if (response.ok) {
             document.getElementById("message").innerText = data.message;
-            window.location.href = "/dashboard";
+            window.location.href = "http://127.0.0.1:8000/dashboard";
         } else {
             document.getElementById("message").innerText = data.detail;
         }
