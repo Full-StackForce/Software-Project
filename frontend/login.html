@@ -37,6 +37,13 @@
     <p id="message"></p>
 
     <script>
+const STORAGE_KEYS = {
+    userId: 'userId',
+    userName: 'userName',
+    userEmail: 'userEmail',
+    userStreak: 'userStreak'
+};
+
 async function login() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -56,7 +63,15 @@ async function login() {
 
         if (response.ok) {
             document.getElementById("message").innerText = data.message;
-            window.location.href = "http://127.0.0.1:8000/dashboard";
+            // Store user session
+            localStorage.setItem(STORAGE_KEYS.userId, data.user_id);
+            localStorage.setItem(STORAGE_KEYS.userName, data.name);
+            localStorage.setItem(STORAGE_KEYS.userEmail, data.email);
+            localStorage.setItem(STORAGE_KEYS.userStreak, data.current_streak ?? 0);
+            // Redirect to home after 1 second
+            setTimeout(() => {
+                window.location.href = "http://127.0.0.1:8000/home";
+            }, 1000);
         } else {
             document.getElementById("message").innerText = data.detail;
         }

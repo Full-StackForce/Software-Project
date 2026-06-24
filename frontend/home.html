@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsePoint - Daily Workspace & Wellness Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090A10',
+                        panelBg: '#131520',
+                        panelBorder: '#202434',
+                        pulseGreen: '#10B981',
+                        brandPurple: '#6366F1',
+                        neonBlue: '#3B82F6',
+                        goldAccent: '#F59E0B'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'shimmer': 'shimmer 2.5s infinite linear',
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090A10;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131520;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2D3142;
+            border-radius: 3px;
+        }
+        .glass-card {
+            background: rgba(19, 21, 32, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .shimmer-effect {
+            background: linear-gradient(90deg, #131520 25%, #202434 50%, #131520 75%);
+            background-size: 200% 100%;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col justify-between relative overflow-x-hidden custom-scrollbar">
+
+    <!-- Decorative Ambient Glow Layers matching Blue, Purple, Green scheme -->
+    <div class="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] rounded-full bg-brandPurple/5 blur-[150px] pointer-events-none"></div>
+    <div class="absolute bottom-[-15%] right-[-10%] w-[800px] h-[800px] rounded-full bg-neonBlue/5 blur-[160px] pointer-events-none"></div>
+
+    <!-- Floating Success Toast Notification System -->
+    <div id="toast" class="fixed top-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-panelBg border border-pulseGreen/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] px-5 py-4 rounded-2xl">
+        <div class="p-1.5 rounded-lg bg-pulseGreen/10 text-pulseGreen">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-xs font-bold uppercase tracking-wider text-pulseGreen font-mono">Activity Logged</h4>
+            <p id="toastMessage" class="text-xs text-gray-400 mt-0.5">Your daily metrics have been successfully integrated.</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar & Tabs -->
+    <nav class="border-b border-panelBorder/80 bg-panelBg/50 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+            
+            <!-- Logo Section Placeholder (No brand logos) -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brandPurple to-neonBlue flex items-center justify-center shadow-lg shadow-brandPurple/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-lg font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-brandPurple">
+                        PULSE<span class="text-pulseGreen">POINT</span>
+                    </span>
+                    <span class="text-[9px] uppercase tracking-widest text-gray-500 font-mono">Personal Performance Hub</span>
+                </div>
+            </div>
+
+            <!-- Responsive Navigation Tabs -->
+            <div class="flex flex-wrap justify-center items-center gap-2 bg-darkBg/80 p-1.5 border border-panelBorder rounded-2xl">
+                <button onclick="switchTab('workspace')" id="tabBtn-workspace" class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-panelBg border border-panelBorder text-white shadow-md">
+                    Workspace
+                </button>
+                <button onclick="switchTab('workouts')" id="tabBtn-workouts" class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 text-gray-400 hover:text-white">
+                    Workouts
+                </button>
+                <button onclick="switchTab('habits')" id="tabBtn-habits" class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 text-gray-400 hover:text-white">
+                    Habit Builder
+                </button>
+                <button disabled title="Challenges are temporarily locked" id="tabBtn-challenges" class="px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 text-gray-600 border border-panelBorder/60 cursor-not-allowed opacity-70">
+                    Challenges (Locked)
+                </button>
+            </div>
+
+            <!-- User Context Profile Area -->
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex items-center gap-2 bg-darkBg border border-panelBorder/60 px-3 py-1 rounded-full text-[11px] font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-pulseGreen animate-pulse"></span>
+                    <span class="text-gray-400">Streak:</span> 
+                    <span id="streakCounter" class="text-white font-bold font-mono">0 Days</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <div id="userDisplayName" class="text-xs font-bold text-white">Loading...</div>
+                        <div class="text-[10px] text-pulseGreen font-mono">Active User</div>
+                    </div>
+                    <button onclick="logout()" title="Logout" class="p-2 rounded-lg bg-red-600/10 border border-red-500/30 hover:bg-red-600/20 hover:border-red-500/60 transition-all text-red-400 hover:text-red-300">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tab 1: Workspace Grid Dashboard View -->
+    <main id="tab-workspace" class="tab-content max-w-7xl mx-auto w-full px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-8 flex-grow z-10 relative">
+        
+        <!-- ==================== LEFT AREA: INPUT LOG CONSOLE ==================== -->
+        <section class="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
+            
+            <div class="bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-pulseGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Log Your Daily Pulse
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">Updates populate charts and progress meters instantly.</p>
+                    </div>
+                    <span class="text-xs font-bold font-mono bg-darkBg border border-panelBorder px-3 py-1.5 rounded-lg text-gray-400" id="dateDisplay">
+                        Today, June 24
+                    </span>
+                </div>
+
+                <!-- Logger Forms Stack -->
+                <div class="space-y-6">
+
+                    <!-- Hydration Tracker -->
+                    <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-4 transition-all hover:border-neonBlue/40">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-neonBlue/10 text-neonBlue">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 15.382K12 21 4 15.382l8-10.382 8 10.382z"></path>
+                                    </svg>
+                                </span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Hydration Tracker</span>
+                            </div>
+                            <span class="text-[10px] text-gray-500 font-medium font-mono">Target: 2.5L</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex-grow">
+                                <div class="text-xs text-gray-400">Log water intake amount:</div>
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="addWater(250)" class="flex-grow bg-panelBg border border-panelBorder text-xs py-2 rounded-xl text-indigo-300 hover:border-neonBlue hover:text-white transition-all">+ 250ml</button>
+                                    <button onclick="addWater(500)" class="flex-grow bg-panelBg border border-panelBorder text-xs py-2 rounded-xl text-indigo-300 hover:border-neonBlue hover:text-white transition-all">+ 500ml</button>
+                                    <button onclick="resetWater()" class="px-3 bg-panelBg border border-panelBorder text-xs py-2 rounded-xl text-gray-500 hover:border-red-500/40 hover:text-red-400 transition-all">Reset</button>
+                                </div>
+                            </div>
+                            <!-- Visual glass element -->
+                            <div class="w-12 h-16 border-2 border-dashed border-gray-700 rounded-lg relative overflow-hidden flex items-end">
+                                <div id="waterFluidLevel" class="w-full bg-gradient-to-t from-blue-600 to-sky-400 transition-all duration-500" style="height: 0%;"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="waterGlassPercent" class="text-[9px] font-mono font-bold text-white">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Tracker -->
+                    <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-4 transition-all hover:border-brandPurple/40">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-brandPurple/10 text-brandPurple">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                    </svg>
+                                </span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Sleep Duration</span>
+                            </div>
+                            <span class="text-[10px] text-gray-500 font-medium font-mono">Target: 8 Hours</span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Went To Bed</label>
+                                    <input type="time" id="bedtimeInput" value="22:30" onchange="calculateSleep()" class="w-full bg-panelBg border border-panelBorder rounded-xl px-3 py-2 text-xs text-center focus:outline-none focus:border-brandPurple/60 text-white font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-gray-500 uppercase tracking-wider mb-1">Woke Up</label>
+                                    <input type="time" id="waketimeInput" value="06:30" onchange="calculateSleep()" class="w-full bg-panelBg border border-panelBorder rounded-xl px-3 py-2 text-xs text-center focus:outline-none focus:border-brandPurple/60 text-white font-mono">
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-panelBg/50 p-2.5 rounded-xl border border-panelBorder/50">
+                                <span class="text-xs text-gray-400">Total Sleep Calculated:</span>
+                                <span id="sleepSum" class="text-xs font-bold font-mono text-brandPurple">8.0 hrs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Habit Checklist (Custom habits feed here dynamically) -->
+                    <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-4 transition-all hover:border-indigo-400/40">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-gray-300">Habit Checklist</span>
+                            </div>
+                            <span class="text-[10px] text-gray-500 font-medium font-mono">Live Sync</span>
+                        </div>
+
+                        <!-- Habit checkboxes with dynamic interaction -->
+                        <div id="dynamicChecklistContainer" class="space-y-2.5">
+                            <!-- Populated dynamically via state.habits in javascript -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== RIGHT AREA: DASHBOARD ANALYTICS ==================== -->
+        <section class="lg:col-span-7 space-y-6">
+            
+            <!-- Global Dashboard Rating Ring -->
+            <div class="bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                
+                <div class="md:col-span-4 flex flex-col items-center justify-center text-center">
+                    <!-- High Fidelity Progress Ring SVG -->
+                    <div class="relative w-32 h-32 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90">
+                            <!-- Background Circle -->
+                            <circle cx="64" cy="64" r="54" stroke="#1F2937" stroke-width="8" fill="transparent"/>
+                            <!-- Indicator Circle -->
+                            <circle id="dashPulseRing" cx="64" cy="64" r="54" stroke="#10B981" stroke-width="8" stroke-dasharray="339.2" stroke-dashoffset="101.7" stroke-linecap="round" fill="transparent" class="transition-all duration-1000"/>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="dashPulseScore" class="text-3xl font-extrabold text-white font-mono tracking-tighter">70%</span>
+                            <span class="text-[9px] uppercase tracking-widest font-bold text-gray-400">Pulse Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-8 space-y-3">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-pulseGreen/10 border border-pulseGreen/20 text-pulseGreen tracking-wider uppercase">Optimal Zone</span>
+                    <h3 class="text-lg font-bold text-white">Your Rhythm is locked.</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Your combined scores across sleep, hydration, custom habits, and workout frequency calculate into your optimal daily balance index. Unlocking custom targets increases rating weight.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-panelBorder/60">
+                        <div>
+                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Metabolic Focus</div>
+                            <div class="text-xs font-semibold text-gray-200 mt-0.5">High Performance</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-gray-500 uppercase tracking-wider">Circadian Balance</div>
+                            <div class="text-xs font-semibold text-gray-200 mt-0.5 font-mono" id="circadianStats">Aligned</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 4-Card Multi-Column Analytics Output -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Card 1: Hydration Telemetry -->
+                <div class="bg-panelBg border border-panelBorder rounded-3xl p-5 hover:border-neonBlue/30 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Hydration Telemetry</span>
+                            <span class="p-1.5 rounded-lg bg-neonBlue/10 text-neonBlue">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="text-2xl font-black text-white font-mono" id="dashWaterText">1.2 <span class="text-xs font-normal text-gray-500">of 2.5L</span></h4>
+                        <p class="text-xs text-gray-400 mt-2 leading-relaxed font-mono text-[11px]" id="hydrationStatusCommentary">Log water to refresh performance indicators.</p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-panelBorder/60">
+                        <div class="flex items-center justify-between text-[10px] mb-1.5">
+                            <span class="text-gray-500">Progress toward goal</span>
+                            <span id="dashWaterProgressPercent" class="text-neonBlue font-bold font-mono">48%</span>
+                        </div>
+                        <div class="w-full bg-darkBg h-1.5 rounded-full overflow-hidden">
+                            <div id="dashWaterProgressBar" class="bg-gradient-to-r from-neonBlue to-sky-400 h-full w-[48%] rounded-full transition-all duration-700"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Sleep and Quality Scores -->
+                <div class="bg-panelBg border border-panelBorder rounded-3xl p-5 hover:border-brandPurple/30 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Circadian Score</span>
+                            <span class="p-1.5 rounded-lg bg-brandPurple/10 text-brandPurple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="text-2xl font-black text-white font-mono" id="dashSleepText">8.0 hrs <span class="text-xs font-normal text-gray-500">Duration</span></h4>
+                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Estimated deep sleep cycles optimized on your sleep/wake targets.</p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-panelBorder/60">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-gray-500">Sleep Quality Index</span>
+                            <span id="sleepQualityIndex" class="text-brandPurple font-bold font-mono">Excellent (92%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Active Goals Segmented Tracker -->
+                <div class="bg-panelBg border border-panelBorder rounded-3xl p-5 hover:border-pulseGreen/30 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Workout Frequency</span>
+                            <span class="p-1.5 rounded-lg bg-pulseGreen/10 text-pulseGreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="text-2xl font-black text-white font-mono" id="dashActiveDaysCount">2 <span class="text-xs font-normal text-gray-500">Workouts Logged</span></h4>
+                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Total physical training blocks completed inside active user session.</p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-panelBorder/60">
+                        <div class="text-[10px] text-gray-500 mb-2 font-medium">Goal progress map (weekly):</div>
+                        <div class="flex items-center gap-1.5" id="dashActiveDaysProgressContainer">
+                            <!-- Generated Dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Habit Consistency metrics -->
+                <div class="bg-panelBg border border-panelBorder rounded-3xl p-5 hover:border-indigo-400/30 transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Custom Habits Tracker</span>
+                            <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="text-2xl font-black text-white font-mono" id="dashHabitText">0% <span class="text-xs font-normal text-gray-500">Today</span></h4>
+                        <p class="text-xs text-gray-400 mt-2 leading-relaxed">Continuous checklist ratio calculated live across configured daily targets.</p>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-panelBorder/60">
+                        <div class="flex items-center justify-between text-[10px] mb-1.5">
+                            <span class="text-gray-500">Habit Streaks Status</span>
+                            <span id="dashHabitsStatus" class="text-gray-400 font-mono">0/0 Completed</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- High Fidelity Heart Rate & Fitness Trends Line Chart SVG -->
+            <div class="bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Daily Rhythm Trend Monitor</h3>
+                        <p class="text-xs text-gray-400">Visualizing metabolic workload curves plotted against logged workout times.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-2.5 h-2.5 rounded-full bg-brandPurple"></span>
+                        <span class="text-xs text-gray-400">Activity Level</span>
+                    </div>
+                </div>
+
+                <div class="relative w-full h-48 flex items-end">
+                    <svg class="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
+                        <!-- Chart Grid Lines -->
+                        <line x1="0" y1="30" x2="500" y2="30" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+                        <line x1="0" y1="75" x2="500" y2="75" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+                        <line x1="0" y1="120" x2="500" y2="120" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+
+                        <defs>
+                            <linearGradient id="chartGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.3" />
+                                <stop offset="100%" stop-color="#6366F1" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Area path under trend line -->
+                        <path id="chartArea" d="M0,150 L0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70 L500,150 Z" fill="url(#chartGlow)"/>
+
+                        <!-- Trend Line path -->
+                        <path id="chartLine" d="M0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70" fill="none" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-500"/>
+                        
+                        <!-- Pulse Point indicators -->
+                        <circle cx="80" cy="100" r="4.5" fill="#131520" stroke="#6366F1" stroke-width="3"/>
+                        <circle id="liveChartIndicator" cx="240" cy="110" r="4.5" fill="#131520" stroke="#10B981" stroke-width="3" class="transition-all duration-300"/>
+                        <circle cx="400" cy="45" r="4.5" fill="#131520" stroke="#6366F1" stroke-width="3"/>
+                    </svg>
+
+                    <!-- Data Tooltip Tag Inside Graph -->
+                    <div class="absolute top-4 left-[46%] transform translate-x-1/2 p-2 bg-darkBg border border-panelBorder rounded-xl shadow-lg text-[10px] font-mono leading-none flex flex-col gap-1 items-center z-20">
+                        <span class="text-gray-500">METABOLIC WORKLOAD</span>
+                        <span class="text-white font-extrabold" id="peakActiveDisplay">Active (Normal)</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-4 border-t border-panelBorder/60 pt-4">
+                    <span>08:00 AM</span>
+                    <span>12:00 PM</span>
+                    <span>04:00 PM</span>
+                    <span>08:00 PM</span>
+                    <span>12:00 AM</span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Tab 2: Dedicated Workouts Hub Tab -->
+    <main id="tab-workouts" class="tab-content hidden max-w-7xl mx-auto w-full px-6 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 z-10 relative">
+        <!-- Log Workout Panel -->
+        <section class="lg:col-span-5 bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-pulseGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Record New Session
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">Populate training metrics and increment active fitness score weights.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Workout Name / Type</label>
+                    <select id="workoutTypeSelect" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pulseGreen">
+                        <option value="Strength Training">Strength Training</option>
+                        <option value="Cardio Run">Cardio Run</option>
+                        <option value="Yoga & Mobility">Yoga & Mobility</option>
+                        <option value="HIIT / Functional Circuit">HIIT / Functional Circuit</option>
+                        <option value="Swimming">Swimming</option>
+                        <option value="Custom Active Movement">Custom Active Movement</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider">Duration (Minutes)</label>
+                        <span id="workoutDurationLabel" class="text-xs text-pulseGreen font-mono font-bold">45 mins</span>
+                    </div>
+                    <input type="range" id="workoutDurationSlider" min="5" max="180" step="5" value="45" oninput="document.getElementById('workoutDurationLabel').textContent = this.value + ' mins'" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-pulseGreen">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Intensity Profile</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="Low" class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">Low</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="Medium" checked class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">Medium</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="High" class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">High</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Custom Notes (Optional)</label>
+                    <input type="text" id="workoutNotes" placeholder="e.g. Legs & Core focus, split set" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pulseGreen">
+                </div>
+
+                <button onclick="logWorkout()" class="w-full bg-pulseGreen text-darkBg font-extrabold text-xs py-3 rounded-xl hover:bg-emerald-400 transition-all shadow-lg hover:shadow-pulseGreen/15 uppercase tracking-wider font-mono">
+                    Log Dynamic Session
+                </button>
+            </div>
+        </section>
+
+        <!-- Workout History and Analytics Panel -->
+        <section class="lg:col-span-7 bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">Dynamic Session History</h2>
+                <p class="text-xs text-gray-400 mt-1">A timeline of physical workload entries tracked inside this active session.</p>
+            </div>
+
+            <!-- Timeline Stack -->
+            <div id="workoutHistoryContainer" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Dynamically rendered custom list of logged items -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Tab 3: Custom Habits Builder Tab -->
+    <main id="tab-habits" class="tab-content hidden max-w-7xl mx-auto w-full px-6 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 z-10 relative">
+        <!-- Add Custom Habit Configuration Console -->
+        <section class="lg:col-span-5 bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Design Custom Habit
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">Configure user habits. They will automatically sync to your dashboard loggers.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Habit Name</label>
+                    <input type="text" id="habitNameInput" placeholder="e.g. 10m Breathing Drill" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brandPurple placeholder-gray-600">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Metric Type / Track Method</label>
+                    <select id="habitTrackMethod" onchange="toggleHabitTargetOptions()" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brandPurple">
+                        <option value="checkbox">Yes / No Checkbox</option>
+                        <option value="numeric">Numerical Target Counter (e.g. Cups, Liters)</option>
+                        <option value="duration">Target Duration (Minutes)</option>
+                    </select>
+                </div>
+
+                <!-- Numerical/Counter specific target settings, hidden by default -->
+                <div id="habitTargetValueWrapper" class="hidden transition-all duration-200">
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Daily Goal Value</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="habitTargetNumber" value="5" min="1" max="100" class="w-2/3 bg-darkBg border border-panelBorder rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-brandPurple">
+                        <input type="text" id="habitUnit" placeholder="e.g. Cups" class="w-1/3 bg-darkBg border border-panelBorder rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-brandPurple">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-gray-400 font-bold uppercase tracking-wider mb-2">Category Focus</label>
+                    <select id="habitCategory" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brandPurple">
+                        <option value="Mindfulness">Mindfulness & Mental Health</option>
+                        <option value="Nutrition">Nutrition & Diet</option>
+                        <option value="Fitness">Fitness & Activity</option>
+                        <option value="Productivity">Workspace & Focus</option>
+                    </select>
+                </div>
+
+                <button onclick="createNewHabit()" class="w-full bg-indigo-500 text-white font-extrabold text-xs py-3 rounded-xl hover:bg-indigo-400 transition-all shadow-lg hover:shadow-indigo-500/15 uppercase tracking-wider font-mono">
+                    Construct New Habit
+                </button>
+            </div>
+        </section>
+
+        <!-- Dynamic Habits Inventory -->
+        <section class="lg:col-span-7 bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">Active Habits Inventory</h2>
+                <p class="text-xs text-gray-400 mt-1">Live habits deployed within your current daily tracking cycle.</p>
+            </div>
+
+            <!-- List of created habits -->
+            <div id="customHabitsInventory" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Dynamically rendered list of deployed metrics -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Tab 4: Challenges & Achievements Arena -->
+    <main id="tab-challenges" class="tab-content hidden max-w-7xl mx-auto w-full px-6 py-8 flex-grow space-y-8 z-10 relative">
+        
+        <!-- Top Half: Daily/Weekly Challenges -->
+        <div class="bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    Active Rhythm Challenges
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">Perform daily tasks to build health consistency and lock down high scores.</p>
+            </div>
+
+            <!-- Challenges Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Challenge Card 1 -->
+                <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-5 hover:border-amber-500/30 transition-all flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md tracking-wider">Hydration Quest</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Endures 3d</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Aqua Force Tracker</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Reach your full 2.5L daily hydration target inside the workspace.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressWater" class="text-amber-400 font-bold">48%</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressWaterBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full w-[48%] rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Card 2 -->
+                <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-5 hover:border-indigo-400/30 transition-all flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-2 py-0.5 rounded-md tracking-wider">Fitness Milestone</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Endures 7d</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Century Active Club</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Complete at least 100 cumulative minutes of exercise sessions.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressFitness" class="text-indigo-400 font-bold">75 / 100 mins</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressFitnessBar" class="bg-gradient-to-r from-indigo-500 to-indigo-400 h-full w-[75%] rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Card 3 -->
+                <div class="bg-darkBg border border-panelBorder/80 rounded-2xl p-5 hover:border-pulseGreen/30 transition-all flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-pulseGreen bg-pulseGreen/10 border border-pulseGreen/20 px-2 py-0.5 rounded-md tracking-wider">Habits Warrior</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Daily</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Checklist Dominant</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Cross off and complete 100% of your configured checklist habits.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressHabit" class="text-pulseGreen font-bold">0 / 0</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressHabitBar" class="bg-gradient-to-r from-pulseGreen to-emerald-400 h-full w-0 rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Half: Achievements Arena (Using clean placeholder blocks for unearned icons) -->
+        <div class="bg-panelBg border border-panelBorder rounded-3xl p-6 shadow-xl space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                    Performance Badges & Achievements
+                </h2>
+                <p class="text-xs text-gray-400 mt-1">Placeholder shields unlock dynamically upon executing logs and maintaining continuous daily health targets.</p>
+            </div>
+
+            <!-- Achievements grid using placeholder graphics -->
+            <div id="achievementsGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Populated dynamically via state.achievements in Javascript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- App Bottom Footer Segment -->
+    <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-panelBorder/40 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 gap-4 mt-12">
+        <div class="flex items-center gap-2">
+            <span>&copy; 2026 PulsePoint Daily Workspace Log.</span>
+            <span class="text-gray-700">|</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-panelBg border border-panelBorder text-gray-400">Desktop Release v2.5</span>
+        </div>
+        <div class="flex gap-6">
+            <a href="#" class="hover:text-white transition-all">Support Desk</a>
+            <a href="#" class="hover:text-white transition-all">SaaS Terms</a>
+            <a href="#" class="hover:text-white transition-all">Integrations API</a>
+        </div>
+    </footer>
+
+    <script>
+        const CHALLENGES_LOCKED = true;
+
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8000';
+        const STORAGE_KEYS = {
+            userId: 'userId',
+            userName: 'userName',
+            userEmail: 'userEmail',
+            userStreak: 'userStreak'
+        };
+        
+        // Authentication Check - Redirect to login if not authenticated
+        let currentUserId = localStorage.getItem(STORAGE_KEYS.userId);
+        const currentUserName = localStorage.getItem(STORAGE_KEYS.userName);
+        const currentUserEmail = localStorage.getItem(STORAGE_KEYS.userEmail);
+        const currentUserStreak = Number(localStorage.getItem(STORAGE_KEYS.userStreak) || 0);
+        
+        if (!currentUserId) {
+            // User not logged in, redirect to login page
+            window.location.href = 'http://127.0.0.1:8000/login';
+        }
+        
+        // Convert to number
+        currentUserId = parseInt(currentUserId, 10);
+        
+        // Core Wellness Tracker Workspace State Storage
+        const state = {
+            waterIntake: 1.2,
+            waterTarget: 2.5,
+            sleepHours: 8.0,
+            sleepTarget: 8.0,
+            pulseScore: 70,
+            workouts: [],
+            habits: [],
+            achievements: [
+                { id: 'a1', name: 'First Burn', desc: 'Logged your first fitness workout block.', unlocked: true, metric: 'Workout' },
+                { id: 'a2', name: 'Water Sentinel', desc: 'Hydrate beyond 1.5L in one work interval.', unlocked: false, metric: 'Hydration' },
+                { id: 'a3', name: 'Zen Master', desc: 'Maintain perfect Mindfulness habit consistency.', unlocked: true, metric: 'Habit' },
+                { id: 'a4', name: 'Circadian Champion', desc: 'Match your target sleep wake parameters.', unlocked: false, metric: 'Sleep' }
+            ]
+        };
+
+        // ==================== API CLIENT FUNCTIONS ====================
+        
+        // Fetch all workouts from backend
+        async function fetchWorkouts() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/workouts/user/${currentUserId}`);
+                if (response.ok) {
+                    state.workouts = await response.json();
+                    renderWorkoutHistory();
+                    updatePulseScore();
+                } else {
+                    console.error('Failed to fetch workouts:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching workouts:', error);
+                triggerNotification("Connection Error", "Unable to connect to backend");
+            }
+        }
+
+        async function loadActiveUserName() {
+            const fallbackName = currentUserName || currentUserEmail || 'Unknown User';
+            const userDisplayName = document.getElementById('userDisplayName');
+            const streakCounter = document.getElementById('streakCounter');
+
+            userDisplayName.textContent = fallbackName;
+            streakCounter.textContent = `${currentUserStreak} ${currentUserStreak === 1 ? 'Day' : 'Days'}`;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me/${currentUserId}`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch user details: ${response.status}`);
+                }
+
+                const user = await response.json();
+                const displayName = user.name || user.email || fallbackName;
+                const streakDays = Number(user.current_streak || 0);
+
+                userDisplayName.textContent = displayName;
+                streakCounter.textContent = `${streakDays} ${streakDays === 1 ? 'Day' : 'Days'}`;
+                if (user.name) {
+                    localStorage.setItem(STORAGE_KEYS.userName, user.name);
+                }
+                if (user.email) {
+                    localStorage.setItem(STORAGE_KEYS.userEmail, user.email);
+                }
+                localStorage.setItem(STORAGE_KEYS.userStreak, streakDays);
+            } catch (error) {
+                console.error('Failed to load active user details:', error);
+            }
+        }
+
+        function findHabitBySlug(slug) {
+            return state.habits.find(habit => habit.slug === slug) || null;
+        }
+
+        function syncCoreMetricsFromHabits() {
+            const hydrationHabit = findHabitBySlug('hydration');
+            if (hydrationHabit) {
+                state.waterIntake = hydrationHabit.value;
+                state.waterTarget = hydrationHabit.targetValue;
+            }
+
+            const sleepHabit = findHabitBySlug('sleep');
+            if (sleepHabit) {
+                state.sleepHours = sleepHabit.value;
+                state.sleepTarget = sleepHabit.targetValue;
+            }
+        }
+
+        async function logHabitProgressOnBackend(habitId, payload) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/habits/${habitId}/log`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to log habit progress: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Failed to log habit progress:', error);
+                return null;
+            }
+        }
+
+        function renderHydrationState() {
+            const progressPercent = Math.min(Math.round((state.waterIntake / state.waterTarget) * 100), 100);
+
+            waterGlassPercent.textContent = `${progressPercent}%`;
+            waterFluidLevel.style.height = `${progressPercent}%`;
+            dashWaterText.innerHTML = `${state.waterIntake.toFixed(1)} <span class="text-xs font-normal text-gray-500 font-mono">of ${state.waterTarget}L</span>`;
+            dashWaterProgressPercent.textContent = `${progressPercent}%`;
+            dashWaterProgressBar.style.width = `${progressPercent}%`;
+            document.getElementById('challengeProgressWater').textContent = `${progressPercent}%`;
+            document.getElementById('challengeProgressWaterBar').style.width = `${progressPercent}%`;
+
+            if (state.waterIntake >= state.waterTarget) {
+                document.getElementById('hydrationStatusCommentary').textContent = 'Weekly Target Completed! High performance cell volume.';
+            } else {
+                document.getElementById('hydrationStatusCommentary').textContent = `${(state.waterTarget - state.waterIntake).toFixed(1)}L remaining to optimal metabolic state.`;
+            }
+        }
+
+        function renderSleepState() {
+            const hours = parseFloat(state.sleepHours.toFixed(1));
+            sleepSum.textContent = `${hours} hrs`;
+            dashSleepText.innerHTML = `${hours} hrs <span class="text-xs font-normal text-gray-500">Duration</span>`;
+
+            const indexVal = Math.min(Math.round((hours / state.sleepTarget) * 100), 100);
+            let rating = 'Compromised';
+            if (hours >= 7.5 && hours <= 9) rating = 'Excellent';
+            else if (hours >= 6 && hours < 7.5) rating = 'Sufficient';
+            document.getElementById('sleepQualityIndex').textContent = `${rating} (${indexVal}%)`;
+        }
+
+        // Log a new workout to backend
+        async function logWorkoutToBackend(workoutData) {
+            try {
+                const payload = {
+                    user_id: currentUserId,
+                    type: workoutData.type,
+                    duration_minutes: workoutData.duration,
+                    calories_burned: Math.round(workoutData.duration * 6.5),
+                    notes: workoutData.notes,
+                    mood_level: 3
+                };
+
+                const response = await fetch(`${API_BASE_URL}/workouts/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const newWorkout = await response.json();
+                    state.workouts.unshift(newWorkout);
+                    renderWorkoutHistory();
+                    updatePulseScore();
+                    triggerNotification("Dynamic Workout Logged", `${workoutData.type} logged successfully.`);
+                } else {
+                    const error = await response.json();
+                    triggerNotification("Error", error.detail || "Failed to log workout");
+                }
+            } catch (error) {
+                console.error('Error logging workout:', error);
+                triggerNotification("Error", "Failed to log workout");
+            }
+        }
+
+        // Fetch all habits from backend
+        async function fetchHabits() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/habits/user/${currentUserId}`);
+                if (response.ok) {
+                    const apiHabits = await response.json();
+                    state.habits = apiHabits.map(h => ({
+                        id: h.id,
+                        name: h.name,
+                        slug: h.slug,
+                        type: h.track_method,
+                        value: h.current_value,
+                        targetValue: h.target_value,
+                        unit: h.unit,
+                        category: h.category,
+                        streak_count: h.streak_count,
+                        completed_today: h.completed_today,
+                        user_id: h.user_id
+                    }));
+                    syncCoreMetricsFromHabits();
+                    renderHydrationState();
+                    renderSleepState();
+                    renderDashboardChecklist();
+                    renderHabitsInventory();
+                    updatePulseScore();
+                } else {
+                    console.error('Failed to fetch habits:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching habits:', error);
+            }
+        }
+
+        // Create a new habit on backend
+        async function createHabitOnBackend(habitData) {
+            try {
+                const payload = {
+                    user_id: currentUserId,
+                    name: habitData.name,
+                    category: habitData.category || 'custom',
+                    unit: habitData.unit || 'count',
+                    track_method: habitData.type || 'numeric',
+                    frequency: habitData.frequency || 'daily',
+                    target_value: habitData.targetValue || 1
+                };
+
+                const response = await fetch(`${API_BASE_URL}/habits/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    const newHabit = await response.json();
+                    state.habits.push({
+                        id: newHabit.id,
+                        name: newHabit.name,
+                        slug: newHabit.slug,
+                        type: newHabit.track_method,
+                        value: 0,
+                        targetValue: newHabit.target_value,
+                        unit: newHabit.unit,
+                        category: newHabit.category,
+                        streak_count: 0,
+                        completed_today: false,
+                        user_id: newHabit.user_id
+                    });
+                    renderHabitsInventory();
+                    renderDashboardChecklist();
+                    updatePulseScore();
+                    triggerNotification("Habit Engineered", "Successfully logged and deployed to daily workspaces.");
+                } else {
+                    const error = await response.json();
+                    triggerNotification("Error", error.detail || "Failed to create habit");
+                }
+            } catch (error) {
+                console.error('Error creating habit:', error);
+                triggerNotification("Error", "Failed to create habit");
+            }
+        }
+
+        // Update habit completion status on backend
+        async function updateHabitOnBackend(habitId, payload) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/habits/${habitId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    await fetchHabits();
+                    updatePulseScore();
+                } else {
+                    console.error('Failed to update habit:', response.status);
+                }
+            } catch (error) {
+                console.error('Error updating habit:', error);
+            }
+        }
+
+        // Fetch dashboard summary
+        async function fetchDashboardSummary() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/dashboard/user/${currentUserId}`);
+                if (response.ok) {
+                    const summary = await response.json();
+                    console.log('Dashboard summary:', summary);
+                } else {
+                    console.error('Failed to fetch dashboard:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard:', error);
+            }
+        }
+
+        // ==================== END API CLIENT FUNCTIONS ====================
+
+        // Logout Function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem(STORAGE_KEYS.userId);
+                localStorage.removeItem(STORAGE_KEYS.userName);
+                localStorage.removeItem(STORAGE_KEYS.userEmail);
+                localStorage.removeItem(STORAGE_KEYS.userStreak);
+                window.location.href = 'http://127.0.0.1:8000/login';
+            }
+        }
+
+        // Cache DOM elements
+        const waterGlassPercent = document.getElementById('waterGlassPercent');
+        const waterFluidLevel = document.getElementById('waterFluidLevel');
+        const dashWaterText = document.getElementById('dashWaterText');
+        const dashWaterProgressPercent = document.getElementById('dashWaterProgressPercent');
+        const dashWaterProgressBar = document.getElementById('dashWaterProgressBar');
+
+        const bedtimeInput = document.getElementById('bedtimeInput');
+        const waketimeInput = document.getElementById('waketimeInput');
+        const sleepSum = document.getElementById('sleepSum');
+        const dashSleepText = document.getElementById('dashSleepText');
+
+        const dashActiveDaysCount = document.getElementById('dashActiveDaysCount');
+        const dashActiveDaysProgressContainer = document.getElementById('dashActiveDaysProgressContainer');
+        const peakActiveDisplay = document.getElementById('peakActiveDisplay');
+
+        const dashHabitText = document.getElementById('dashHabitText');
+        const dashHabitsStatus = document.getElementById('dashHabitsStatus');
+
+        const dashPulseScore = document.getElementById('dashPulseScore');
+        const dashPulseRing = document.getElementById('dashPulseRing');
+
+        const chartArea = document.getElementById('chartArea');
+        const chartLine = document.getElementById('chartLine');
+        const liveChartIndicator = document.getElementById('liveChartIndicator');
+
+        // Navigation Tab Switch Logic
+        function switchTab(tabId) {
+            if (tabId === 'challenges' && CHALLENGES_LOCKED) {
+                triggerNotification('Locked', 'Challenges are temporarily disabled.');
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(element => {
+                element.classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('nav button').forEach(button => {
+                button.className = "px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 text-gray-400 hover:text-white";
+            });
+            document.getElementById(`tabBtn-${tabId}`).className = "px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-panelBg border border-panelBorder text-white shadow-md";
+        }
+
+        // Complex Multi-factor Daily Score Equation
+        function updatePulseScore() {
+            const hydRatio = Math.min(state.waterIntake / state.waterTarget, 1.0);
+            const sleepRatio = Math.min(state.sleepHours / state.sleepTarget, 1.0);
+            const workoutCountRatio = Math.min(state.workouts.length / 3, 1.0);
+            
+            let habitsTotalCount = state.habits.length;
+            let habitsPassedCount = 0;
+            state.habits.forEach(h => {
+                if (h.type === 'checkbox' && h.value === true) {
+                    habitsPassedCount++;
+                } else if (h.type === 'numeric' && h.value >= h.targetValue) {
+                    habitsPassedCount++;
+                } else if (h.type === 'duration' && h.value >= h.targetValue) {
+                    habitsPassedCount++;
+                }
+            });
+            const habitRatio = habitsTotalCount > 0 ? (habitsPassedCount / habitsTotalCount) : 0;
+
+            const finalScore = Math.round(
+                (hydRatio * 25) + (sleepRatio * 25) + (workoutCountRatio * 25) + (habitRatio * 25)
+            );
+
+            state.pulseScore = finalScore;
+            dashPulseScore.textContent = `${finalScore}%`;
+
+            const circumference = 339.29;
+            const offset = circumference - (finalScore / 100) * circumference;
+            dashPulseRing.setAttribute('stroke-dashoffset', offset);
+
+            const circadianStats = document.getElementById('circadianStats');
+            if (state.sleepHours >= 7.5 && state.sleepHours <= 9) {
+                circadianStats.textContent = "Aligned (Optimal)";
+                circadianStats.className = "text-pulseGreen font-bold font-mono";
+            } else if (state.sleepHours < 6.5) {
+                circadianStats.textContent = "Deficit Tracked";
+                circadianStats.className = "text-amber-500 font-bold font-mono";
+            } else {
+                circadianStats.textContent = "Extended / Over";
+                circadianStats.className = "text-neonBlue font-bold font-mono";
+            }
+
+            const habitPercent = habitsTotalCount > 0 ? Math.round((habitsPassedCount / habitsTotalCount) * 100) : 0;
+            dashHabitText.innerHTML = `${habitPercent}% <span class="text-xs font-normal text-gray-500">Today</span>`;
+            dashHabitsStatus.textContent = `${habitsPassedCount}/${habitsTotalCount} Completed`;
+
+            document.getElementById('challengeProgressHabit').textContent = `${habitsPassedCount} / ${habitsTotalCount}`;
+            const challengeHabitBar = document.getElementById('challengeProgressHabitBar');
+            challengeHabitBar.style.width = habitsTotalCount > 0 ? `${(habitsPassedCount / habitsTotalCount) * 100}%` : '0%';
+
+            evaluateBadgesAchievements();
+        }
+
+        // Hydration Tracker Operations
+        async function addWater(amountMl) {
+            const addedLiters = amountMl / 1000;
+            const hydrationHabit = findHabitBySlug('hydration');
+            if (!hydrationHabit) {
+                triggerNotification("Hydration Missing", "Hydration habit is not available yet.");
+                return;
+            }
+
+            const updatedHabit = await logHabitProgressOnBackend(hydrationHabit.id, { amount: addedLiters });
+            if (!updatedHabit) {
+                triggerNotification("Error", "Failed to log hydration.");
+                return;
+            }
+
+            hydrationHabit.value = updatedHabit.current_value;
+            hydrationHabit.targetValue = updatedHabit.target_value;
+            hydrationHabit.completed_today = updatedHabit.completed_today;
+            state.waterIntake = parseFloat(updatedHabit.current_value.toFixed(2));
+            state.waterTarget = updatedHabit.target_value;
+            renderHydrationState();
+
+            updatePulseScore();
+            triggerNotification("Hydration Logged", `Injected ${amountMl}ml clean hydration to systems.`);
+        }
+
+        async function resetWater() {
+            const hydrationHabit = findHabitBySlug('hydration');
+            if (!hydrationHabit) {
+                return;
+            }
+
+            const updatedHabit = await logHabitProgressOnBackend(hydrationHabit.id, { value: 0, completed_today: false });
+            if (!updatedHabit) {
+                return;
+            }
+
+            hydrationHabit.value = updatedHabit.current_value;
+            hydrationHabit.completed_today = updatedHabit.completed_today;
+            state.waterIntake = 0.0;
+            renderHydrationState();
+
+            updatePulseScore();
+        }
+
+        // Calculate sleep intervals
+        async function calculateSleep(options = {}) {
+            const { persist = true, silent = false } = options;
+            const bedtimeVal = bedtimeInput.value;
+            const waketimeVal = waketimeInput.value;
+
+            if (!bedtimeVal || !waketimeVal) return;
+
+            const [startH, startM] = bedtimeVal.split(':').map(Number);
+            const [endH, endM] = waketimeVal.split(':').map(Number);
+
+            let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+            if (diffMinutes < 0) {
+                diffMinutes += 24 * 60;
+            }
+
+            const hours = parseFloat((diffMinutes / 60).toFixed(1));
+            const sleepHabit = findHabitBySlug('sleep');
+            if (sleepHabit && persist) {
+                const updatedHabit = await logHabitProgressOnBackend(sleepHabit.id, { value: hours });
+                if (updatedHabit) {
+                    sleepHabit.value = updatedHabit.current_value;
+                    sleepHabit.targetValue = updatedHabit.target_value;
+                    sleepHabit.completed_today = updatedHabit.completed_today;
+                    state.sleepHours = updatedHabit.current_value;
+                    state.sleepTarget = updatedHabit.target_value;
+                } else {
+                    state.sleepHours = hours;
+                }
+            } else {
+                state.sleepHours = hours;
+            }
+            renderSleepState();
+
+            updatePulseScore();
+            if (!silent) {
+                triggerNotification("Circadian Balance Tracked", `Logged sleep duration at ${hours} hours.`);
+            }
+        }
+
+        // Dynamic Habits Inventory Renderer
+        function renderHabitsInventory() {
+            const container = document.getElementById('customHabitsInventory');
+            container.innerHTML = '';
+
+            state.habits.forEach((habit, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-darkBg border border-panelBorder/80 rounded-2xl p-4 flex flex-col justify-between space-y-4";
+                
+                let valDisplay = "";
+                if (habit.type === 'checkbox') {
+                    valDisplay = habit.value ? "Completed" : "Pending";
+                } else if (habit.type === 'numeric') {
+                    valDisplay = `${habit.value} / ${habit.targetValue} ${habit.unit}`;
+                } else if (habit.type === 'duration') {
+                    valDisplay = `${habit.value} / ${habit.targetValue} mins`;
+                }
+
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest font-mono">${habit.category}</span>
+                            ${habit.slug === 'hydration' || habit.slug === 'sleep' || habit.slug === 'workout' ? '' : '<button onclick="deleteHabit(' + idx + ')" class="text-gray-500 hover:text-red-400 text-xs font-bold hover:scale-105 transition-all">Delete</button>'}
+                        </div>
+                        <h4 class="text-sm font-bold text-white">${habit.name}</h4>
+                    </div>
+                    <div class="flex justify-between items-center bg-panelBg/60 p-2.5 rounded-xl border border-panelBorder/40">
+                        <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Value:</span>
+                        <span class="text-xs font-mono font-bold text-indigo-300">${valDisplay}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updatePulseScore();
+        }
+
+        // Dynamic Active Dashboard Habits List Checker
+        function renderDashboardChecklist() {
+            const container = document.getElementById('dynamicChecklistContainer');
+            container.innerHTML = '';
+
+            if (state.habits.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 border border-dashed border-panelBorder rounded-xl">
+                        <span class="text-xs text-gray-500">No habits set. Switch to Habit Builder tab to launch custom targets.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            state.habits.forEach((habit, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-xl bg-panelBg/80 border border-panelBorder/60 hover:bg-panelBg transition-all gap-3";
+
+                if (habit.type === 'checkbox') {
+                    div.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
+                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category}</span>
+                        </div>
+                        <div class="flex items-center gap-2 self-end sm:self-auto">
+                            <span class="text-[10px] text-gray-500 font-mono">${habit.value ? "Complete" : "Pending"}</span>
+                            <input type="checkbox" onchange="toggleCheckboxHabit(${idx})" ${habit.value ? 'checked' : ''} class="rounded border-gray-700 text-brandPurple focus:ring-brandPurple/40 w-5 h-5 bg-darkBg cursor-pointer">
+                        </div>
+                    `;
+                } else if (habit.type === 'numeric') {
+                    div.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
+                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (${habit.unit})</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <span class="text-[11px] font-mono text-gray-300 font-bold">${habit.value}/${habit.targetValue}</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="incrementHabitValue(${idx}, -1)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
+                                <button onclick="incrementHabitValue(${idx}, 1)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (habit.type === 'duration') {
+                    div.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
+                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (Minutes)</span>
+                        </div>
+                        <div class="flex items-center gap-3 self-end sm:self-auto">
+                            <span class="text-[11px] font-mono text-gray-300 font-bold">${habit.value}/${habit.targetValue} min</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="incrementHabitValue(${idx}, -5)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
+                                <button onclick="incrementHabitValue(${idx}, 5)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.appendChild(div);
+            });
+        }
+
+        // Toggle configuration visibility targets
+        function toggleHabitTargetOptions() {
+            const type = document.getElementById('habitTrackMethod').value;
+            const targetWrapper = document.getElementById('habitTargetValueWrapper');
+            const unitInput = document.getElementById('habitUnit');
+
+            if (type === 'checkbox') {
+                targetWrapper.classList.add('hidden');
+            } else if (type === 'numeric') {
+                targetWrapper.classList.remove('hidden');
+                unitInput.placeholder = "e.g. Cups";
+                unitInput.value = "Cups";
+            } else if (type === 'duration') {
+                targetWrapper.classList.remove('hidden');
+                unitInput.placeholder = "Minutes";
+                unitInput.value = "Minutes";
+                unitInput.readOnly = true;
+            }
+        }
+
+        // Add Custom Habit Operation
+        function createNewHabit() {
+            const nameInput = document.getElementById('habitNameInput');
+            const typeSelect = document.getElementById('habitTrackMethod');
+            const targetNum = document.getElementById('habitTargetNumber');
+            const unitInput = document.getElementById('habitUnit');
+            const catSelect = document.getElementById('habitCategory');
+
+            if (!nameInput.value.trim()) {
+                triggerNotification("Config Error", "Please provide a valid Habit Name.");
+                return;
+            }
+
+            const habitData = {
+                name: nameInput.value.trim(),
+                type: typeSelect.value,
+                targetValue: typeSelect.value === 'checkbox' ? 1 : parseFloat(targetNum.value),
+                unit: unitInput.value || 'Units',
+                frequency: 'daily',
+                category: catSelect.value
+            };
+
+            createHabitOnBackend(habitData);
+            
+            nameInput.value = '';
+            targetNum.value = '5';
+        }
+
+        // Checkbox interaction
+        function toggleCheckboxHabit(idx) {
+            state.habits[idx].value = !state.habits[idx].value;
+            state.habits[idx].completed_today = state.habits[idx].value;
+            logHabitProgressOnBackend(state.habits[idx].id, { completed_today: state.habits[idx].value });
+            renderDashboardChecklist();
+            renderHabitsInventory();
+        }
+
+        // Slider / Counter values
+        function incrementHabitValue(idx, increment) {
+            const target = state.habits[idx];
+            let rawValue = target.value + increment;
+            if (rawValue < 0) rawValue = 0;
+            target.value = rawValue;
+            target.completed_today = rawValue >= target.targetValue;
+
+            logHabitProgressOnBackend(target.id, { value: rawValue });
+            renderDashboardChecklist();
+            renderHabitsInventory();
+        }
+
+        // Delete Habits Entry
+        async function deleteHabit(idx) {
+            const habit = state.habits[idx];
+            const response = await fetch(`${API_BASE_URL}/habits/${habit.id}`, { method: 'DELETE' });
+            if (!response.ok) {
+                const error = await response.json();
+                triggerNotification("Error", error.detail || "Failed to delete habit");
+                return;
+            }
+
+            state.habits.splice(idx, 1);
+            renderHabitsInventory();
+            renderDashboardChecklist();
+        }
+
+        // Workout Tracking History Renderers
+        function renderWorkoutHistory() {
+            const container = document.getElementById('workoutHistoryContainer');
+            container.innerHTML = '';
+
+            state.workouts.forEach((workout, idx) => {
+                const item = document.createElement('div');
+                item.className = "bg-darkBg border border-panelBorder/80 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-pulseGreen/30 transition-all";
+                
+                let iconColor = "text-pulseGreen bg-pulseGreen/10";
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 rounded-xl ${iconColor}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-sm font-bold text-white">${workout.type}</h4>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5">${workout.notes ? workout.notes : 'No session notes provided.'}</p>
+                            <span class="text-[9px] font-mono text-gray-600 block mt-1">${new Date(workout.completed_at).toLocaleString()}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-extrabold text-white font-mono block">${workout.duration_minutes}</span>
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block">Mins</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            dashActiveDaysCount.innerHTML = `${state.workouts.length} <span class="text-xs font-normal text-gray-500">Sessions Logged</span>`;
+            
+            dashActiveDaysProgressContainer.innerHTML = '';
+            const totalWorkouts = state.workouts.length;
+            for (let i = 1; i <= 7; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'h-2.5 flex-grow rounded-md transition-all duration-300';
+                if (i <= totalWorkouts) {
+                    bar.className += ' bg-gradient-to-r from-pulseGreen to-emerald-400';
+                } else {
+                    bar.className += ' bg-gray-800';
+                }
+                dashActiveDaysProgressContainer.appendChild(bar);
+            }
+
+            let totalMins = 0;
+            state.workouts.forEach(w => totalMins += w.duration_minutes);
+            peakActiveDisplay.textContent = `${totalMins} Mins Logged`;
+
+            document.getElementById('challengeProgressFitness').textContent = `${totalMins} / 100 mins`;
+            const challengeFitnessBar = document.getElementById('challengeProgressFitnessBar');
+            challengeFitnessBar.style.width = `${Math.min(Math.round((totalMins / 100) * 100), 100)}%`;
+
+            const dynamicHeightPoint = Math.max(150 - Math.round((totalMins / 200) * 120), 20);
+            chartArea.setAttribute('d', `M0,150 L0,120 L80,100 L160,110 L240,${dynamicHeightPoint} L320,80 L400,45 L500,70 L500,150 Z`);
+            chartLine.setAttribute('d', `M0,120 L80,100 L160,110 L240,${dynamicHeightPoint} L320,80 L400,45 L500,70`);
+            liveChartIndicator.setAttribute('cy', dynamicHeightPoint);
+
+            updatePulseScore();
+        }
+
+        // Append Workout Entry Logic
+        function logWorkout() {
+            const selectEl = document.getElementById('workoutTypeSelect');
+            const durationEl = document.getElementById('workoutDurationSlider');
+            const intensityEl = document.querySelector('input[name="intensityRadio"]:checked');
+            const notesEl = document.getElementById('workoutNotes');
+
+            const workoutData = {
+                type: selectEl.value,
+                duration: parseInt(durationEl.value, 10),
+                intensity: intensityEl.value,
+                notes: notesEl.value.trim()
+            };
+
+            logWorkoutToBackend(workoutData);
+            
+            notesEl.value = '';
+            durationEl.value = '45';
+            document.getElementById('workoutDurationLabel').textContent = '45 mins';
+        }
+
+        // Evaluate and reward achievements dynamically based on state metrics
+        function evaluateBadgesAchievements() {
+            if (state.waterIntake >= 1.5) {
+                state.achievements[1].unlocked = true;
+            }
+            if (state.sleepHours >= 7.5 && state.sleepHours <= 9.0) {
+                state.achievements[3].unlocked = true;
+            }
+
+            renderAchievementsGrid();
+        }
+
+        function renderAchievementsGrid() {
+            const container = document.getElementById('achievementsGridContainer');
+            container.innerHTML = '';
+
+            state.achievements.forEach(ach => {
+                const card = document.createElement('div');
+                
+                let cardClass = "bg-darkBg border border-panelBorder/80 rounded-2xl p-5 text-center flex flex-col items-center justify-between space-y-4 transition-all hover:scale-[1.02]";
+                let iconWrapperClass = "";
+                let indicatorTag = "";
+                let svgBadgeMarkup = "";
+
+                if (ach.unlocked) {
+                    cardClass += " border-indigo-400/20 shadow-[0_0_20px_rgba(99,102,241,0.06)]";
+                    iconWrapperClass = "w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-400/40 flex items-center justify-center relative";
+                    indicatorTag = `<span class="text-[9px] uppercase tracking-wider text-pulseGreen font-bold font-mono">Unlocked</span>`;
+                    
+                    svgBadgeMarkup = `
+                        <svg class="w-8 h-8 text-indigo-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                        </svg>
+                    `;
+                } else {
+                    cardClass += " opacity-60";
+                    iconWrapperClass = "w-16 h-16 rounded-full bg-panelBg border border-dashed border-gray-700 flex items-center justify-center relative";
+                    indicatorTag = `<span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold font-mono">Locked</span>`;
+                    
+                    svgBadgeMarkup = `
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    `;
+                }
+
+                card.className = cardClass;
+                card.innerHTML = `
+                    <div class="${iconWrapperClass}">
+                        ${svgBadgeMarkup}
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono">${ach.name}</h4>
+                        <p class="text-[11px] text-gray-400 leading-normal">${ach.desc}</p>
+                    </div>
+                    ${indicatorTag}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Unified workspace alert engine
+        function triggerNotification(title, message) {
+            const toast = document.getElementById('toast');
+            const titleEl = document.getElementById('toastTitle');
+            const messageEl = document.getElementById('toastMessage');
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+
+            toast.className = "fixed top-6 right-6 z-50 transform translate-y-0 opacity-100 flex items-center gap-3 bg-panelBg border border-pulseGreen/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] px-5 py-4 rounded-2xl transition-all duration-300";
+
+            setTimeout(() => {
+                toast.className = "fixed top-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-3 bg-panelBg border border-pulseGreen/30 shadow-[0_0_20px_rgba(16,185,129,0.15)] px-5 py-4 rounded-2xl";
+            }, 3500);
+        }
+
+        // Set current date
+        function updateDateDisplay() {
+            const options = { month: 'long', day: 'numeric' };
+            const today = new Date().toLocaleDateString('en-US', options);
+            document.getElementById('dateDisplay').textContent = `Today, ${today}`;
+        }
+
+        // Initialize elements on load
+        window.onload = async function() {
+            updateDateDisplay();
+            renderDashboardChecklist();
+            renderHabitsInventory();
+            renderAchievementsGrid();
+            renderHydrationState();
+            renderSleepState();
+            updatePulseScore();
+
+            await loadActiveUserName();
+            
+            // Load data from backend
+            await fetchHabits();
+            fetchWorkouts();
+            fetchDashboardSummary();
+        };
+    </script>
+</body>
+</html>

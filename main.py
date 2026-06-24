@@ -1,17 +1,19 @@
 from pathlib import Path
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import inspect, text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from routers import index as indexRoute
-
 from routers import index as indexRoute
 from routers import goal as goalRoute
 from routers import auth
 from routers import user as userRoute
+from routers import workout as workoutRoute
+from routers import habit as habitRoute
+from routers import dashboard as dashboardRoute
 from dependencies.config import conf
 from dependencies.database import engine, Base
-import models.user
+from models.model_loader import load_models
 
 
 app = FastAPI()
@@ -28,8 +30,35 @@ app.add_middleware(
 app.include_router(goalRoute.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(userRoute.router, tags=["users"])
+app.include_router(workoutRoute.router, tags=["workouts"])
+app.include_router(habitRoute.router, tags=["habits"])
+app.include_router(dashboardRoute.router, tags=["dashboard"])
 
+
+def ensure_user_profile_columns() -> None:
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("users")}
+    statements = []
+
+    if "gender" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN gender VARCHAR(30) NULL")
+    if "height_cm" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN height_cm FLOAT NULL")
+    if "weight_kg" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN weight_kg FLOAT NULL")
+
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
+
+load_models()
 Base.metadata.create_all(bind=engine)
+ensure_user_profile_columns()
 
 @app.get("/login")
 def login_page():
@@ -47,9 +76,16 @@ def index_page():
 
 @app.get("/challanges")
 def challenges_page():
-    return FileResponse(Path("frontend") / "challanges.html")
+    raise HTTPException(status_code=423, detail="Challenges are temporarily locked.")
 
 @app.get("/dashboard")
 def dashboard_page():
     return FileResponse(Path("frontend") / "dashboard.html")
+
+@app.get("/home")
+def home_page():
+    return FileResponse(Path("frontend") / "home.html")
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 

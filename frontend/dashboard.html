@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PulsePoint Dashboard</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #0a0f1f;
+			--panel: #11182b;
+			--panel-border: #2a344e;
+			--text: #ecf2ff;
+			--muted: #a8b4d0;
+			--accent: #00c4ff;
+			--success: #11d19d;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: 'Space Grotesk', sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(1000px 500px at 5% -10%, rgba(0, 196, 255, 0.16), transparent 55%),
+				radial-gradient(900px 450px at 100% 0%, rgba(17, 209, 157, 0.14), transparent 55%),
+				var(--bg);
+			min-height: 100vh;
+		}
+
+		.wrap {
+			max-width: 1050px;
+			margin: 0 auto;
+			padding: 28px 18px 40px;
+		}
+
+		.topbar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 14px;
+			margin-bottom: 22px;
+		}
+
+		.title {
+			margin: 0;
+			font-size: clamp(1.5rem, 2vw + 0.8rem, 2.2rem);
+			letter-spacing: 0.02em;
+		}
+
+		.subtitle {
+			margin: 5px 0 0;
+			color: var(--muted);
+			font-size: 0.92rem;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			border: 1px solid var(--panel-border);
+			background: var(--panel);
+			color: var(--text);
+			border-radius: 10px;
+			padding: 9px 12px;
+			font-weight: 600;
+			text-decoration: none;
+		}
+
+		.btn:hover { border-color: var(--accent); }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 18px;
+		}
+
+		.card {
+			background: linear-gradient(180deg, rgba(17, 24, 43, 0.9), rgba(17, 24, 43, 0.75));
+			border: 1px solid var(--panel-border);
+			border-radius: 14px;
+			padding: 14px;
+		}
+
+		.label { color: var(--muted); font-size: 0.8rem; }
+		.value { margin-top: 6px; font-size: 1.55rem; font-weight: 700; }
+
+		.panel {
+			background: rgba(17, 24, 43, 0.82);
+			border: 1px solid var(--panel-border);
+			border-radius: 14px;
+			padding: 16px;
+			margin-bottom: 12px;
+		}
+
+		.panel h2 {
+			margin: 0 0 12px;
+			font-size: 1rem;
+			letter-spacing: 0.02em;
+		}
+
+		.progress-row {
+			display: grid;
+			grid-template-columns: 120px 1fr 52px;
+			gap: 10px;
+			align-items: center;
+			margin-bottom: 10px;
+		}
+
+		.bar {
+			height: 10px;
+			border-radius: 999px;
+			background: #1b253f;
+			overflow: hidden;
+		}
+
+		.bar > span {
+			display: block;
+			height: 100%;
+			background: linear-gradient(90deg, var(--accent), var(--success));
+			width: 0;
+			transition: width 0.3s ease;
+		}
+
+		.list { margin: 0; padding-left: 16px; color: var(--muted); }
+		.list li { margin-bottom: 6px; }
+
+		.msg {
+			color: var(--muted);
+			margin: 0;
+			font-size: 0.92rem;
+		}
+
+		@media (max-width: 900px) {
+			.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		}
+
+		@media (max-width: 600px) {
+			.grid { grid-template-columns: 1fr; }
+			.progress-row { grid-template-columns: 1fr; gap: 6px; }
+			.topbar { align-items: flex-start; flex-direction: column; }
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="topbar">
+			<div>
+				<h1 class="title">Dashboard</h1>
+				<p class="subtitle" id="greeting">Loading your metrics...</p>
+			</div>
+			<div class="actions">
+				<a class="btn" href="/home">Back To Home</a>
+				<a class="btn" href="/login">Switch User</a>
+			</div>
+		</div>
+
+		<div class="grid">
+			<div class="card">
+				<div class="label">Current Streak</div>
+				<div class="value" id="streak">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Workouts Logged</div>
+				<div class="value" id="workouts">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Active Habits</div>
+				<div class="value" id="activeHabits">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Goals Completed</div>
+				<div class="value" id="goals">0</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<h2>Core Habit Progress</h2>
+			<div class="progress-row">
+				<span>Hydration</span>
+				<div class="bar"><span id="hydrationBar"></span></div>
+				<strong id="hydrationPct">0%</strong>
+			</div>
+			<div class="progress-row">
+				<span>Sleep</span>
+				<div class="bar"><span id="sleepBar"></span></div>
+				<strong id="sleepPct">0%</strong>
+			</div>
+			<div class="progress-row">
+				<span>Workout</span>
+				<div class="bar"><span id="workoutBar"></span></div>
+				<strong id="workoutPct">0%</strong>
+			</div>
+			<p class="msg" id="streakSummary">0 login days in a row</p>
+		</div>
+
+		<div class="panel">
+			<h2>No Body Metrics Needed</h2>
+			<ul class="list">
+				<li>This dashboard uses only tracked app behavior: habits, workouts, goals, and login streak.</li>
+				<li>Weight and height tables are intentionally not required for this version.</li>
+			</ul>
+		</div>
+	</div>
+
+	<script>
+		const API_BASE = 'http://localhost:8000';
+		const userId = Number(localStorage.getItem('userId'));
+
+		if (!userId) {
+			window.location.href = '/login';
+		}
+
+		function setProgress(prefix, pct) {
+			const value = Number(pct || 0);
+			document.getElementById(`${prefix}Pct`).textContent = `${value}%`;
+			document.getElementById(`${prefix}Bar`).style.width = `${value}%`;
+		}
+
+		async function loadDashboard() {
+			try {
+				const [dashRes, meRes] = await Promise.all([
+					fetch(`${API_BASE}/dashboard/user/${userId}`),
+					fetch(`${API_BASE}/auth/me/${userId}`)
+				]);
+
+				if (!dashRes.ok || !meRes.ok) {
+					throw new Error('Failed to load dashboard data');
+				}
+
+				const dashboard = await dashRes.json();
+				const me = await meRes.json();
+
+				document.getElementById('greeting').textContent = `Welcome back, ${me.name}.`;
+				document.getElementById('streak').textContent = dashboard.current_streak_days;
+				document.getElementById('workouts').textContent = dashboard.total_workouts;
+				document.getElementById('activeHabits').textContent = dashboard.active_habits;
+				document.getElementById('goals').textContent = dashboard.goals_completed;
+				document.getElementById('streakSummary').textContent = dashboard.streak_summary;
+
+				setProgress('hydration', dashboard.hydration_progress_pct);
+				setProgress('sleep', dashboard.sleep_progress_pct);
+				setProgress('workout', dashboard.workout_progress_pct);
+			} catch (error) {
+				document.getElementById('greeting').textContent = 'Unable to load dashboard right now.';
+				document.getElementById('streakSummary').textContent = 'Try again in a moment.';
+				console.error(error);
+			}
+		}
+
+		loadDashboard();
+	</script>
+</body>
+</html>

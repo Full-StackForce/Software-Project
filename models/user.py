@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, DateTime, Float, Integer, String
 from sqlalchemy.sql import func
 
 from dependencies.database import Base
@@ -14,6 +14,9 @@ class User(Base):
     name = Column(String(100), nullable=True)
     timezone = Column(String(100), nullable=True)
     focus = Column(String(255), nullable=True)
+    gender = Column(String(30), nullable=True)
+    height_cm = Column(Float, nullable=True)
+    weight_kg = Column(Float, nullable=True)
     bedtime = Column(String(20), nullable=True)
     active_days = Column(Integer, nullable=True)
     hydration_goal = Column(String(20), nullable=True)
