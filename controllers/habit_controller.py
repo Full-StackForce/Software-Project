@@ -132,6 +132,7 @@ def create_habit(payload: HabitCreate) -> Habit:
         habit = Habit(
             user_id=payload.user_id,
             name=payload.name,
+            description=payload.description,
             slug=slug,
             category=payload.category,
             unit=payload.unit,
@@ -161,8 +162,17 @@ def update_habit(habit_id: int, payload: HabitUpdate) -> Habit | None:
 
         updates = payload.model_dump(exclude_unset=True)
         if "name" in updates:
-            habit.name = updates["name"]
-            habit.slug = _slugify(updates["name"])
+            updated_name = updates["name"]
+            updated_slug = _slugify(updated_name)
+            existing = db.query(Habit).filter(
+                Habit.user_id == habit.user_id,
+                Habit.slug == updated_slug,
+                Habit.id != habit.id,
+            ).first()
+            if existing:
+                raise HTTPException(status_code=409, detail="A habit with this name already exists.")
+            habit.name = updated_name
+            habit.slug = updated_slug
             del updates["name"]
 
         explicit_completed_today = updates.pop("completed_today", None)

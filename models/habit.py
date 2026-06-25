@@ -11,6 +11,7 @@ class Habit(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(100), nullable=False)
+    description = Column(String(255), nullable=True)
     slug = Column(String(120), nullable=False, index=True)
     category = Column(String(50), nullable=False, default="custom")
     unit = Column(String(20), nullable=False, default="count")

@@ -83,6 +83,15 @@
             return state.habits.find(habit => habit.slug === slug) || null;
         }
 
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
         function syncCoreMetricsFromHabits() {
             const hydrationHabit = findHabitBySlug('hydration');
             if (hydrationHabit) {
@@ -193,6 +202,7 @@
                     state.habits = apiHabits.map(h => ({
                         id: h.id,
                         name: h.name,
+                        description: h.description || '',
                         slug: h.slug,
                         type: h.track_method,
                         value: h.current_value,
@@ -223,6 +233,7 @@
                 const payload = {
                     user_id: currentUserId,
                     name: habitData.name,
+                    description: habitData.description || null,
                     category: habitData.category || 'custom',
                     unit: habitData.unit || 'count',
                     track_method: habitData.type || 'numeric',
@@ -243,6 +254,7 @@
                     state.habits.push({
                         id: newHabit.id,
                         name: newHabit.name,
+                        description: newHabit.description || '',
                         slug: newHabit.slug,
                         type: newHabit.track_method,
                         value: 0,
@@ -281,11 +293,16 @@
                 if (response.ok) {
                     await fetchHabits();
                     updatePulseScore();
+                    return true;
                 } else {
-                    console.error('Failed to update habit:', response.status);
+                    const error = await response.json();
+                    triggerNotification("Error", error.detail || "Failed to update habit");
+                    return false;
                 }
             } catch (error) {
                 console.error('Error updating habit:', error);
+                triggerNotification("Error", "Failed to update habit");
+                return false;
             }
         }
 
@@ -523,9 +540,10 @@
                     <div class="space-y-1">
                         <div class="flex justify-between items-start">
                             <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest font-mono">${habit.category}</span>
-                            ${habit.slug === 'hydration' || habit.slug === 'sleep' || habit.slug === 'workout' ? '' : '<button onclick="deleteHabit(' + idx + ')" class="text-gray-500 hover:text-red-400 text-xs font-bold hover:scale-105 transition-all">Delete</button>'}
+                            ${habit.slug === 'hydration' || habit.slug === 'sleep' || habit.slug === 'workout' ? '' : '<div class="flex items-center gap-2"><button onclick="editHabit(' + idx + ')" class="text-gray-500 hover:text-indigo-300 text-xs font-bold hover:scale-105 transition-all">Edit</button><button onclick="deleteHabit(' + idx + ')" class="text-gray-500 hover:text-red-400 text-xs font-bold hover:scale-105 transition-all">Delete</button></div>'}
                         </div>
-                        <h4 class="text-sm font-bold text-white">${habit.name}</h4>
+                        <h4 class="text-sm font-bold text-white">${escapeHtml(habit.name)}</h4>
+                        ${habit.description ? '<p class="text-xs text-gray-400">' + escapeHtml(habit.description) + '</p>' : ''}
                     </div>
                     <div class="flex justify-between items-center bg-panelBg/60 p-2.5 rounded-xl border border-panelBorder/40">
                         <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Value:</span>
@@ -624,6 +642,7 @@
         // Add Custom Habit Operation
         function createNewHabit() {
             const nameInput = document.getElementById('habitNameInput');
+            const descriptionInput = document.getElementById('habitDescriptionInput');
             const typeSelect = document.getElementById('habitTrackMethod');
             const targetNum = document.getElementById('habitTargetNumber');
             const unitInput = document.getElementById('habitUnit');
@@ -636,6 +655,7 @@
 
             const habitData = {
                 name: nameInput.value.trim(),
+                description: descriptionInput.value.trim(),
                 type: typeSelect.value,
                 targetValue: typeSelect.value === 'checkbox' ? 1 : parseFloat(targetNum.value),
                 unit: unitInput.value || 'Units',
@@ -646,7 +666,35 @@
             createHabitOnBackend(habitData);
             
             nameInput.value = '';
+            descriptionInput.value = '';
             targetNum.value = '5';
+        }
+
+        async function editHabit(idx) {
+            const habit = state.habits[idx];
+            const updatedName = prompt('Update habit name:', habit.name);
+            if (updatedName === null) {
+                return;
+            }
+
+            const trimmedName = updatedName.trim();
+            if (!trimmedName) {
+                triggerNotification("Config Error", "Habit name cannot be empty.");
+                return;
+            }
+
+            const updatedDescription = prompt('Update description (optional):', habit.description || '');
+            if (updatedDescription === null) {
+                return;
+            }
+
+            const updated = await updateHabitOnBackend(habit.id, {
+                name: trimmedName,
+                description: updatedDescription.trim() || null
+            });
+            if (updated) {
+                triggerNotification("Habit Updated", "Habit details were successfully updated.");
+            }
         }
 
         // Checkbox interaction

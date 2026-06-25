@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 class HabitCreate(BaseModel):
     user_id: int = Field(..., example=1)
     name: str = Field(..., example="Drink water")
+    description: str | None = Field(None, example="Drink 8 cups throughout the day")
     category: str = Field(default="custom", example="wellness")
     unit: str = Field(default="count", example="cups")
     track_method: str = Field(default="numeric", example="numeric")
@@ -14,6 +15,7 @@ class HabitCreate(BaseModel):
 
 class HabitUpdate(BaseModel):
     name: str | None = Field(None, example="Drink water")
+    description: str | None = Field(None, example="Drink 8 cups throughout the day")
     category: str | None = Field(None, example="wellness")
     unit: str | None = Field(None, example="cups")
     track_method: str | None = Field(None, example="numeric")
@@ -34,6 +36,7 @@ class HabitResponse(BaseModel):
     id: int
     user_id: int
     name: str
+    description: str | None
     slug: str
     category: str
     unit: str
