@@ -139,6 +139,30 @@
 			font-size: 0.92rem;
 		}
 
+		.habit-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.habit-item {
+	border: 1px solid var(--panel-border);
+	background: rgba(18, 30, 58, 0.55);
+	border-radius: 12px;
+	padding: 12px;
+}
+
+.habit-name {
+	font-weight: 700;
+	margin-bottom: 6px;
+}
+
+.habit-status {
+	color: var(--muted);
+	font-size: 0.85rem;
+}
+
 		.charts-grid {
 			display: grid;
 			grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -241,6 +265,13 @@
 				<div class="value" id="goals">0</div>
 			</div>
 		</div>
+		<div class="panel">
+	<h2>Active Habits</h2>
+	<p class="msg">Quick view of your current habit status.</p>
+	<div id="habitDashboardList" class="habit-list"></div>
+</div>
+
+
 
 		<div class="panel">
 			<h2>Core Habit Progress</h2>
@@ -340,6 +371,35 @@
 			}
 			return new Chart(ctx, config);
 		}
+
+		function renderHabitDashboard(habits) {
+	const list = document.getElementById('habitDashboardList');
+	if (!list) {
+		return;
+	}
+
+	list.innerHTML = '';
+
+	if (!habits.length) {
+		list.innerHTML = '<p class="msg">No active habits to display yet.</p>';
+		return;
+	}
+
+	for (const habit of habits) {
+		const current = Number(habit.current_value || 0);
+		const target = Number(habit.target_value || 1);
+		const progress = Math.min(Math.round((current / target) * 100), 100);
+
+		const card = document.createElement('div');
+		card.className = 'habit-item';
+		card.innerHTML = `
+			<div class="habit-name">${habit.name}</div>
+			<div class="habit-status">Status: ${progress}% complete</div>
+		`;
+
+		list.appendChild(card);
+	}
+}
 
 		function renderCharts(workouts, habits) {
 			const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at));
@@ -602,7 +662,8 @@
 				setProgress('hydration', dashboard.hydration_progress_pct);
 				setProgress('sleep', dashboard.sleep_progress_pct);
 				setProgress('workout', dashboard.workout_progress_pct);
-				renderCharts(workouts, habits);
+				renderHabitDashboard(habits);
+                renderCharts(workouts, habits);
 				renderWeightChart(weightLogs);
 				renderAnalysis(dashboard, workouts, habits, profile, weightLogs);
 			} catch (error) {
