@@ -11,6 +11,14 @@ class WorkoutCreate(BaseModel):
     mood_level: int = Field(ge=1, le=5)
 
 
+class WorkoutUpdate(BaseModel):
+    type: str | None = Field(None, example="Strength")
+    duration_minutes: int | None = Field(None, example=50)
+    calories_burned: int | None = Field(None, example=350)
+    notes: str | None = Field(None, example="Evening gym session")
+    mood_level: int | None = Field(None, ge=1, le=5)
+
+
 class WorkoutResponse(BaseModel):
     id: int
     user_id: int
