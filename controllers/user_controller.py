@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 from fastapi import HTTPException
@@ -5,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from dependencies.database import SessionLocal
 from models.user import User
+from models.weight_log import WeightLog
 from schemas.user import UserCreate, UserUpdate
 
 
@@ -21,6 +23,7 @@ def create_user(payload: UserCreate) -> User:
         gender = payload.gender or "prefer_not_to_say"
         height_cm = payload.height_cm if payload.height_cm is not None else 170.0
         weight_kg = payload.weight_kg if payload.weight_kg is not None else 70.0
+        target_weight_kg = payload.target_weight_kg if payload.target_weight_kg is not None else max(weight_kg - 2.0, 1.0)
         bedtime = payload.bedtime or "22:30"
         active_days = payload.active_days if payload.active_days is not None else 4
         hydration_goal = payload.hydration_goal or "2.5"
@@ -35,6 +38,7 @@ def create_user(payload: UserCreate) -> User:
             gender=gender,
             height_cm=height_cm,
             weight_kg=weight_kg,
+            target_weight_kg=target_weight_kg,
             bedtime=bedtime,
             active_days=active_days,
             hydration_goal=hydration_goal,
@@ -42,6 +46,11 @@ def create_user(payload: UserCreate) -> User:
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+
+        # Seed the first weight log so trend analysis has an initial baseline.
+        db.add(WeightLog(user_id=db_user.id, log_date=date.today(), weight_kg=weight_kg))
+        db.commit()
+
         return db_user
     finally:
         db.close()
