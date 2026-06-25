@@ -41,6 +41,7 @@ def get_user_details_route(user_id: int, fields: str | None = Query(default=None
         "gender",
         "height_cm",
         "weight_kg",
+        "target_weight_kg",
         "bedtime",
         "active_days",
         "hydration_goal",

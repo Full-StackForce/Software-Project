@@ -17,6 +17,7 @@ class User(Base):
     gender = Column(String(30), nullable=True)
     height_cm = Column(Float, nullable=True)
     weight_kg = Column(Float, nullable=True)
+    target_weight_kg = Column(Float, nullable=True)
     bedtime = Column(String(20), nullable=True)
     active_days = Column(Integer, nullable=True)
     hydration_goal = Column(String(20), nullable=True)

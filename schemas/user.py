@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     gender: Optional[str] = Field(None, example="female")
     height_cm: Optional[float] = Field(None, gt=0, example=170)
     weight_kg: Optional[float] = Field(None, gt=0, example=65)
+    target_weight_kg: Optional[float] = Field(None, gt=0, example=60)
     bedtime: Optional[str] = None
     active_days: Optional[int] = None
     hydration_goal: Optional[str] = None
@@ -28,6 +29,7 @@ class UserUpdate(BaseModel):
     gender: Optional[str] = Field(None, example="female")
     height_cm: Optional[float] = Field(None, gt=0, example=170)
     weight_kg: Optional[float] = Field(None, gt=0, example=65)
+    target_weight_kg: Optional[float] = Field(None, gt=0, example=60)
     bedtime: Optional[str] = None
     active_days: Optional[int] = None
     hydration_goal: Optional[str] = None
@@ -43,6 +45,7 @@ class UserResponse(BaseModel):
     gender: Optional[str] = None
     height_cm: Optional[float] = None
     weight_kg: Optional[float] = None
+    target_weight_kg: Optional[float] = None
     bedtime: Optional[str] = None
     active_days: Optional[int] = None
     hydration_goal: Optional[str] = None

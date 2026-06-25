@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import inspect, text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from routers import index as indexRoute
 from routers import goal as goalRoute
 from routers import auth
@@ -11,6 +12,7 @@ from routers import user as userRoute
 from routers import workout as workoutRoute
 from routers import habit as habitRoute
 from routers import dashboard as dashboardRoute
+from routers import weight_log as weightLogRoute
 from dependencies.config import conf
 from dependencies.database import engine, Base
 from models.model_loader import load_models
@@ -33,6 +35,8 @@ app.include_router(userRoute.router, tags=["users"])
 app.include_router(workoutRoute.router, tags=["workouts"])
 app.include_router(habitRoute.router, tags=["habits"])
 app.include_router(dashboardRoute.router, tags=["dashboard"])
+app.include_router(weightLogRoute.router, tags=["weight-logs"])
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 
 def ensure_user_profile_columns() -> None:
@@ -49,6 +53,8 @@ def ensure_user_profile_columns() -> None:
         statements.append("ALTER TABLE users ADD COLUMN height_cm FLOAT NULL")
     if "weight_kg" not in existing_columns:
         statements.append("ALTER TABLE users ADD COLUMN weight_kg FLOAT NULL")
+    if "target_weight_kg" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN target_weight_kg FLOAT NULL")
 
     if statements:
         with engine.begin() as connection:
