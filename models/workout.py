@@ -8,8 +8,9 @@ class Workout:
     user_id: int
     type: str
     duration_minutes: int
-    calories_burned: int
+    calories_burned: float
     notes: str | None
     mood_level: int
+    intensity_level: int
     completed_at: datetime
 
