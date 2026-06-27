@@ -19,10 +19,15 @@ def create_workout(payload: WorkoutCreate) -> Workout:
         notes=payload.notes,
         completed_at=datetime.utcnow(),
         mood_level=payload.mood_level,
+        intensity_level=payload.intensity_level,
     )
     _workouts.append(workout)
     _next_workout_id += 1
     return workout
+
+
+def get_workout(workout_id: int):
+    return next((w for w in _workouts if w.id == workout_id), None)
 
 
 def list_workouts() -> List[Workout]:

@@ -15,3 +15,11 @@ def create_workout_route(payload: WorkoutCreate):
 @router.get("/", response_model=List[WorkoutResponse])
 def get_workouts():
     return list_workouts()
+
+
+@router.get("/{workout_id}", response_model=WorkoutResponse)
+def get_workout_route(workout_id: int):
+    workout = get_workout(workout_id)
+    if workout is None:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    return workout
