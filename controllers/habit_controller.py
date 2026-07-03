@@ -34,6 +34,14 @@ def update_habit(habit_id: int, payload: HabitUpdate) -> Habit | None:
             return habit
     return None
 
+def delete_habit(habit_id: int) -> bool:
+    global _habits
 
-def list_habits() -> List[Habit]:
-    return list(_habits)
+    before_count = len(_habits)
+    _habits = [habit for habit in _habits if habit.id != habit_id]
+
+    return len(_habits) < before_count
+
+
+def list_habits(user_id: int) -> List[Habit]:
+    return [habit for habit in _habits if habit.user_id == user_id]

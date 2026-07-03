@@ -9,6 +9,7 @@ from routers import goal as goalRoute
 from routers import auth
 from dependencies.config import conf
 from routers import workout as workoutRoute
+from routers import habit as habitRoute
 
 
 app = FastAPI()
@@ -24,6 +25,7 @@ app.add_middleware(
 
 app.include_router(goalRoute.router)
 app.include_router(workoutRoute.router)
+app.include_router(habitRoute.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 
@@ -53,11 +55,19 @@ def read_root():
             <form id ="workoutForm" style="display:none; margin-top:20px;">
                 <h2>Log Workout</h2>
 
+                <label for="user_id">User ID:</label><br>
                 <input type="number" id="user_id" value="1"required> <br><br>
+
+                <label for="type">Workout Type:</label><br>
                 <input type="text" id="type" placeholder = "workout type" required> <br><br>
+
+                <label for="duration_minutes">Workout Duration:</label><br>
                 <input type="number" id="duration_minutes" placeholder="Duration in minutes" required> <br><br>
+
+                <label for="calories_burned">Calories burned:</label><br>
                 <input type="number" id="calories_burned" placeholder="Calories burned"required> <br><br>
 
+                <label for="mood_level">Mood Level:</label><br>
                 <select id="mood_level" required>
                     <option value="1">1 - Not good</option>
                     <option value="2">2</option>
@@ -66,6 +76,7 @@ def read_root():
                     <option value="5">5 Went really well</option>
                 </select><br><br>
 
+                <label for="notes">Notes:</label><br>
                 <textarea id="notes" placeholder="Did anything affect your workout?"></textarea><br><br>
 
                 <button type="submit">Save Workout</button>
@@ -73,6 +84,39 @@ def read_root():
 
                 <h2>Workout History</h2>
                 <div id ="workoutList"></div>
+                <button onclick="document.getElementById('habitSection').style.display='block'">
+            Habit Tracking
+        </button>
+
+        <div id="habitSection" style="display:none; margin-top:20px;">
+            <h2>Create Habit</h2>
+
+            <form id="habitForm">
+
+                <label for="habit_user_id">User ID:</label><br>
+                <input type="number" id="habit_user_id" value="1" required><br><br>
+
+                <label for="habit_name">Habit Name:</label><br>
+                <input type="text" id="habit_name" placeholder="Habit name" required><br><br>
+
+                <label for="habit_description">Description:</label><br>
+                <input type="text" id="habit_description" placeholder="Optional description"><br><br>
+
+                <label for="habit_frequency">Frequency:</label><br>
+                <input type="text" id="habit_frequency" placeholder="Frequency, ex: daily" required><br><br>
+
+                <label for="habit_target_count">Target Count:</label><br>
+                <input type="number" id="habit_target_count" placeholder="Target count" required><br><br>
+
+                <button type="submit">Save Habit</button>
+            </form>
+
+            <h2>Active Habits</h2>
+            <div id="habitList"></div>
+
+            <h2>Habit History</h2>
+            <div id="habitHistory"></div>
+        </div>
 
                 <script>
                     document.getElementById("workoutForm").addEventListener("submit", async function(e) {
@@ -126,6 +170,110 @@ def read_root():
                 }
 
                 loadWorkouts();
+
+                document.getElementById("habitForm").addEventListener("submit", async function(e) {
+                    e.preventDefault();
+
+                    const habit = {
+                        user_id: Number(document.getElementById("habit_user_id").value),
+                        name: document.getElementById("habit_name").value,
+                        description: document.getElementById("habit_description").value,
+                        frequency: document.getElementById("habit_frequency").value,
+                        target_count: Number(document.getElementById("habit_target_count").value)
+                    };
+
+                    const response = await fetch("/habits/", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(habit)
+                    });
+
+                    if (response.ok) {
+                        alert("Habit saved!");
+                        document.getElementById("habitForm").reset();
+                        document.getElementById("habit_user_id").value = 1;
+                        loadHabits();
+                    } else {
+                        alert("Habit could not be saved.");
+                    }
+                });
+
+                async function loadHabits() {
+                    const userId = document.getElementById("habit_user_id").value || 1;
+                    const response = await fetch(`/habits/${userId}`);
+                    const habits = await response.json();
+
+                    const list = document.getElementById("habitList");
+                    list.innerHTML = "";
+
+                    habits.forEach(habit => {
+                        list.innerHTML += `
+                            <div style="border:1px solid #ccc; padding:10px; margin:10px 0;">
+                                <strong>${habit.name}</strong><br>
+                                Description: ${habit.description || "No description"}<br>
+                                Frequency: ${habit.frequency}<br>
+                                Target Count: ${habit.target_count}<br>
+                                Streak: ${habit.streak_count}<br>
+                                Completed Today: ${habit.completed_today}<br>
+                                Last Completed: ${habit.last_completed_date || "Not completed yet"}<br><br>
+
+                                <button onclick="completeHabit(${habit.id})">Mark Complete</button>
+                                <button onclick="deleteHabit(${habit.id})">Delete</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                async function completeHabit(habitId) {
+                    const response = await fetch(`/habits/${habitId}/complete`, {
+                        method: "POST"
+                    });
+
+                    if (response.ok) {
+                        alert("Habit marked complete!");
+                        loadHabits();
+                        loadHabitHistory();
+                    } else {
+                        alert("Could not mark habit complete.");
+                    }
+                }
+
+                async function deleteHabit(habitId) {
+                    const response = await fetch(`/habits/${habitId}`, {
+                        method: "DELETE"
+                    });
+
+                    if (response.ok) {
+                        alert("Habit deleted!");
+                        loadHabits();
+                    } else {
+                        alert("Could not delete habit.");
+                    }
+                }
+
+                async function loadHabitHistory() {
+                    const userId = document.getElementById("habit_user_id").value || 1;
+                    const response = await fetch(`/habits/history/${userId}`);
+                    const history = await response.json();
+
+                    const historyDiv = document.getElementById("habitHistory");
+                    historyDiv.innerHTML = "";
+
+                    history.forEach(item => {
+                        historyDiv.innerHTML += `
+                            <div style="border:1px solid #ddd; padding:8px; margin:8px 0;">
+                                Habit ID: ${item.habit_id}<br>
+                                Completed Date: ${item.completed_date}
+                            </div>
+                        `;
+                    });
+                }
+
+                loadHabits();
+                loadHabitHistory();
+
             </script>
         </body>
     </html>

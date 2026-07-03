@@ -1,17 +1,20 @@
 from datetime import date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class HabitCreate(BaseModel):
-    user_id: int = Field(..., example=1)
-    name: str = Field(..., example="Drink water")
-    frequency: str = Field(..., example="daily")
-    target_count: int = Field(..., example=8)
+    user_id: int
+    name: str
+    frequency: str
+    target_count: int
 
 
 class HabitUpdate(BaseModel):
-    completed_today: bool = Field(..., example=True)
-    streak_count: int = Field(..., example=3)
+    name: str | None = None
+    frequency: str | None = None
+    target_count: int | None = None
+    completed_today: bool | None = None
+    streak_count: int | None = None
 
 
 class HabitResponse(BaseModel):
@@ -23,6 +26,3 @@ class HabitResponse(BaseModel):
     streak_count: int
     completed_today: bool
     last_completed_date: date | None
-
-    class Config:
-        from_attributes= True
