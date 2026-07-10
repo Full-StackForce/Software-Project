@@ -7,3 +7,14 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     message: str
+    user_id: int
+    name: str
+    email: str
+    current_streak: int
+
+
+class CurrentUserResponse(BaseModel):
+    user_id: int
+    name: str
+    email: str
+    current_streak: int

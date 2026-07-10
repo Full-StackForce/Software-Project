@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulsePoint | Elevate Your Routine</title>
+    <style>
+        :root {
+            --bg: #07111f;
+            --panel: rgba(255, 255, 255, 0.08);
+            --text: #f5f7ff;
+            --muted: #9fb0c9;
+            --accent: #74f0c1;
+            --accent-2: #6b8cff;
+            --border: rgba(255, 255, 255, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", Roboto, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(107, 140, 255, 0.35), transparent 28%),
+                linear-gradient(135deg, var(--bg), #101d33 65%, #07111f);
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 56px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0 28px;
+        }
+
+        .brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            margin-left: 18px;
+            opacity: 0.85;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 32px;
+            align-items: center;
+            padding: 24px 0 40px;
+        }
+
+        .hero-copy h1 {
+            font-size: clamp(2.2rem, 4vw, 3.6rem);
+            line-height: 1.05;
+            margin: 0 0 16px;
+        }
+
+        .hero-copy p {
+            font-size: 1.05rem;
+            color: var(--muted);
+            line-height: 1.7;
+            margin: 0 0 24px;
+            max-width: 620px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 999px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #031018;
+            box-shadow: 0 12px 28px rgba(107, 140, 255, 0.25);
+        }
+
+        .btn-secondary {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .preview-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+        }
+
+        .preview-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .mini-stat {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .mini-stat strong {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .feature-card h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 860px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <nav class="nav">
+            <div class="brand">PulsePoint</div>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-copy">
+                <h1>Build better habits. Stay on track.</h1>
+                <p>PulsePoint helps you turn everyday intentions into a calm, visible routine. Track workouts, stick to habits, and see your goals come to life in one sleek space.</p>
+
+                <div class="actions">
+                    <a class="btn btn-primary" href="accounts">Create your account</a>
+                    <a class="btn btn-secondary" href="login">Log in</a>
+                </div>
+
+                <div class="pill-row">
+                    <span class="pill">Habit tracking</span>
+                    <span class="pill">Workout insights</span>
+                    <span class="pill">Goal progress</span>
+                </div>
+            </div>
+
+            <div class="preview-card">
+                <div class="preview-top">
+                    <strong>Your weekly momentum</strong>
+                    <span style="color: var(--accent);">● Live</span>
+                </div>
+
+                <div class="mini-stat">
+                    <strong>82%</strong>
+                    <span style="color: var(--muted);">Consistency this week</span>
+                </div>
+                <div class="mini-stat">
+                    <strong>5/7</strong>
+                    <span style="color: var(--muted);">Habits completed</span>
+                </div>
+                <div class="mini-stat">
+                    <strong>+3</strong>
+                    <span style="color: var(--muted);">Workouts logged</span>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>Habits</h3>
+                        <p>Stay consistent with simple daily check-ins.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Workouts</h3>
+                        <p>Track progress and build momentum over time.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Goals</h3>
+                        <p>Break big ambitions into clear next steps.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
