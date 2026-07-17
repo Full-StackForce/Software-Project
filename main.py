@@ -1,11 +1,10 @@
 from pathlib import Path
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from sqlalchemy import inspect, text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from routers import index as indexRoute
 from routers import goal as goalRoute
 from routers import auth
 from routers import user as userRoute
@@ -76,13 +75,14 @@ def login_page():
 def accounts_page(step_name: str | None = None):
     return FileResponse(Path("frontend") / "accounts.html")
 
+@app.get("/")
 @app.get("/index")
 def index_page():
     return FileResponse(Path("frontend") / "index.html")
 
 @app.get("/challanges")
 def challenges_page():
-    raise HTTPException(status_code=423, detail="Challenges are temporarily locked.")
+    return FileResponse(Path("frontend") / "challanges.html")
 
 @app.get("/dashboard")
 def dashboard_page():

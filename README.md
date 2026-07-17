@@ -20,7 +20,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-6. Open `http://127.0.0.1:8000/index` to use the site, or `http://127.0.0.1:8000/docs` to view the API and CRUD routes.
+6. Open `http://127.0.0.1:8000/` to use the site, or `http://127.0.0.1:8000/docs` to view the API and CRUD routes.
 
 ## Project Structure
 

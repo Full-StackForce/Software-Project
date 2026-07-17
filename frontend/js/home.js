@@ -1,4 +1,4 @@
-        const CHALLENGES_LOCKED = true;
+        const CHALLENGES_LOCKED = false;
         const { API_BASE, session, storage } = window.PulseApp;
 
         // Authentication Check - Redirect to login if not authenticated
@@ -357,10 +357,22 @@
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
-            document.querySelectorAll('nav button').forEach(button => {
+            document.querySelectorAll('.pp-tab-container .pp-tab-btn').forEach(button => {
                 button.className = "pp-tab-btn pp-tab-btn--inactive";
             });
             document.getElementById(`tabBtn-${tabId}`).className = "pp-tab-btn pp-tab-btn--active";
+        }
+
+        function applyInitialTabFromQuery() {
+            const requestedTab = new URLSearchParams(window.location.search).get('tab');
+            if (!requestedTab) {
+                return;
+            }
+
+            const allowedTabs = new Set(['workspace', 'workouts', 'habits', 'challenges']);
+            if (allowedTabs.has(requestedTab)) {
+                switchTab(requestedTab);
+            }
         }
 
         // Complex Multi-factor Daily Score Equation
@@ -858,6 +870,7 @@
 
         // Initialize elements on load
         window.onload = async function() {
+            applyInitialTabFromQuery();
             updateDateDisplay();
             renderDashboardChecklist();
             renderHabitsInventory();
