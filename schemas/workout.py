@@ -8,6 +8,15 @@ class WorkoutCreate(BaseModel):
     duration_minutes: int = Field(..., example=45)
     calories_burned: int| None = Field(None, example=320)
     notes: str | None = Field(None, example="Morning run around the park")
+    mood_level: int = Field(ge=1, le=5)
+
+
+class WorkoutUpdate(BaseModel):
+    type: str | None = Field(None, example="Strength")
+    duration_minutes: int | None = Field(None, example=50)
+    calories_burned: int | None = Field(None, example=350)
+    notes: str | None = Field(None, example="Evening gym session")
+    mood_level: int | None = Field(None, ge=1, le=5)
 
 
 class WorkoutResponse(BaseModel):
@@ -18,6 +27,7 @@ class WorkoutResponse(BaseModel):
     calories_burned: int
     notes: str | None
     completed_at: datetime
+    mood_level: int
 
     class Config:
         from_attributes= True

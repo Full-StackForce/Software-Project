@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PulsePoint Dashboard</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="/frontend/css/common.css">
+	<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #0a0f1f;
+			--panel: #11182b;
+			--panel-border: #2a344e;
+			--text: #ecf2ff;
+			--muted: #a8b4d0;
+			--accent: #00c4ff;
+			--success: #11d19d;
+		}
+
+		* { box-sizing: border-box; }
+
+		body {
+			margin: 0;
+			font-family: 'Space Grotesk', sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(1000px 500px at 5% -10%, rgba(0, 196, 255, 0.16), transparent 55%),
+				radial-gradient(900px 450px at 100% 0%, rgba(17, 209, 157, 0.14), transparent 55%),
+				var(--bg);
+			min-height: 100vh;
+		}
+
+		.wrap {
+			max-width: 1050px;
+			margin: 0 auto;
+			padding: 28px 18px 40px;
+		}
+
+		.topbar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 14px;
+			margin-bottom: 22px;
+		}
+
+		.title {
+			margin: 0;
+			font-size: clamp(1.5rem, 2vw + 0.8rem, 2.2rem);
+			letter-spacing: 0.02em;
+		}
+
+		.subtitle {
+			margin: 5px 0 0;
+			color: var(--muted);
+			font-size: 0.92rem;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			border: 1px solid var(--panel-border);
+			background: var(--panel);
+			color: var(--text);
+			border-radius: 10px;
+			padding: 9px 12px;
+			font-weight: 600;
+			text-decoration: none;
+		}
+
+		.btn:hover { border-color: var(--accent); }
+
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 18px;
+		}
+
+		.card {
+			background: linear-gradient(180deg, rgba(17, 24, 43, 0.9), rgba(17, 24, 43, 0.75));
+			border: 1px solid var(--panel-border);
+			border-radius: 14px;
+			padding: 14px;
+		}
+
+		.label { color: var(--muted); font-size: 0.8rem; }
+		.value { margin-top: 6px; font-size: 1.55rem; font-weight: 700; }
+
+		.panel {
+			background: rgba(17, 24, 43, 0.82);
+			border: 1px solid var(--panel-border);
+			border-radius: 14px;
+			padding: 16px;
+			margin-bottom: 12px;
+		}
+
+		.panel h2 {
+			margin: 0 0 12px;
+			font-size: 1rem;
+			letter-spacing: 0.02em;
+		}
+
+		.progress-row {
+			display: grid;
+			grid-template-columns: 120px 1fr 52px;
+			gap: 10px;
+			align-items: center;
+			margin-bottom: 10px;
+		}
+
+		.bar {
+			height: 10px;
+			border-radius: 999px;
+			background: #1b253f;
+			overflow: hidden;
+		}
+
+		.bar > span {
+			display: block;
+			height: 100%;
+			background: linear-gradient(90deg, var(--accent), var(--success));
+			width: 0;
+			transition: width 0.3s ease;
+		}
+
+		.list { margin: 0; padding-left: 16px; color: var(--muted); }
+		.list li { margin-bottom: 6px; }
+
+		.msg {
+			color: var(--muted);
+			margin: 0;
+			font-size: 0.92rem;
+		}
+
+		.charts-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 12px;
+		}
+
+		.chart-card {
+			background: rgba(17, 24, 43, 0.82);
+			border: 1px solid var(--panel-border);
+			border-radius: 14px;
+			padding: 14px;
+		}
+
+		.chart-card h3 {
+			margin: 0 0 8px;
+			font-size: 0.95rem;
+			font-weight: 700;
+			letter-spacing: 0.01em;
+		}
+
+		.chart-card p {
+			margin: 0 0 10px;
+			font-size: 0.82rem;
+			color: var(--muted);
+		}
+
+		.chart-wrap {
+			height: 250px;
+		}
+
+		.analysis-list {
+			margin: 0;
+			padding-left: 16px;
+			color: var(--muted);
+		}
+
+		.analysis-list li {
+			margin-bottom: 8px;
+			line-height: 1.4;
+		}
+
+		.chip-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin-top: 10px;
+		}
+
+		.chip {
+			font-size: 0.74rem;
+			padding: 4px 8px;
+			border-radius: 999px;
+			border: 1px solid var(--panel-border);
+			color: var(--muted);
+			background: rgba(18, 30, 58, 0.5);
+		}
+
+		@media (max-width: 900px) {
+			.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.charts-grid { grid-template-columns: 1fr; }
+		}
+
+		@media (max-width: 600px) {
+			.grid { grid-template-columns: 1fr; }
+			.progress-row { grid-template-columns: 1fr; gap: 6px; }
+			.topbar { align-items: flex-start; flex-direction: column; }
+			.chart-wrap { height: 220px; }
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="topbar">
+			<div>
+				<h1 class="title">Dashboard</h1>
+				<p class="subtitle" id="greeting">Loading your metrics...</p>
+			</div>
+			<div class="actions">
+				<a class="btn" href="/home">Back To Home</a>
+				<a class="btn" href="/login">Switch User</a>
+			</div>
+		</div>
+
+		<div class="grid">
+			<div class="card">
+				<div class="label">Current Streak</div>
+				<div class="value" id="streak">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Workouts Logged</div>
+				<div class="value" id="workouts">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Active Habits</div>
+				<div class="value" id="activeHabits">0</div>
+			</div>
+			<div class="card">
+				<div class="label">Goals Completed</div>
+				<div class="value" id="goals">0</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<h2>Core Habit Progress</h2>
+			<div class="progress-row">
+				<span>Hydration</span>
+				<div class="bar"><span id="hydrationBar"></span></div>
+				<strong id="hydrationPct">0%</strong>
+			</div>
+			<div class="progress-row">
+				<span>Sleep</span>
+				<div class="bar"><span id="sleepBar"></span></div>
+				<strong id="sleepPct">0%</strong>
+			</div>
+			<div class="progress-row">
+				<span>Workout</span>
+				<div class="bar"><span id="workoutBar"></span></div>
+				<strong id="workoutPct">0%</strong>
+			</div>
+			<p class="msg" id="streakSummary">0 login days in a row</p>
+		</div>
+
+		<div class="panel">
+			<h2>Performance Insights</h2>
+			<div class="charts-grid">
+				<div class="chart-card">
+					<h3>Workout Duration Trend</h3>
+					<p>Recent session duration from logged workouts.</p>
+					<div class="chart-wrap">
+						<canvas id="workoutTrendChart"></canvas>
+					</div>
+				</div>
+				<div class="chart-card">
+					<h3>Workout Type Distribution</h3>
+					<p>Breakdown by workout type from your actual log.</p>
+					<div class="chart-wrap">
+						<canvas id="workoutTypeChart"></canvas>
+					</div>
+				</div>
+				<div class="chart-card" style="grid-column: 1 / -1;">
+					<h3>Habit Progress Comparison</h3>
+					<p>Current habit progress vs configured targets.</p>
+					<div class="chart-wrap" style="height: 280px;">
+						<canvas id="habitCompareChart"></canvas>
+					</div>
+				</div>
+				<div class="chart-card" style="grid-column: 1 / -1;">
+					<h3>Weight Trend</h3>
+					<p>Logged weight history compared over time.</p>
+					<div class="chart-wrap" style="height: 240px;">
+						<canvas id="weightTrendChart"></canvas>
+					</div>
+					<div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+						<input id="weightInput" type="number" min="1" step="0.1" placeholder="Log weight (kg)"
+							class="pp-inline-input">
+						<button onclick="logWeight()" class="btn" type="button">Save Weight</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<h2>Coach Analysis</h2>
+			<ul id="analysisList" class="analysis-list">
+				<li>Building analysis from your latest habits and workouts...</li>
+			</ul>
+			<div class="chip-row" id="analysisTags"></div>
+		</div>
+	</div>
+
+	<script src="/frontend/js/app-common.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+	<script>
+		const API_BASE = window.PulseApp.API_BASE;
+		const userId = window.PulseApp.session.requireUser('/login');
+		let workoutTrendChart;
+		let workoutTypeChart;
+		let habitCompareChart;
+		let weightTrendChart;
+
+		if (!userId) {
+			throw new Error('User session is required to load dashboard.');
+		}
+
+		function setProgress(prefix, pct) {
+			const value = Number(pct || 0);
+			document.getElementById(`${prefix}Pct`).textContent = `${value}%`;
+			document.getElementById(`${prefix}Bar`).style.width = `${value}%`;
+		}
+
+		function createOrReplaceChart(ref, canvasId, config) {
+			if (ref) {
+				ref.destroy();
+			}
+			const ctx = document.getElementById(canvasId);
+			if (!ctx) {
+				return null;
+			}
+			return new Chart(ctx, config);
+		}
+
+		function renderCharts(workouts, habits) {
+			const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at));
+			const recentWorkouts = sortedWorkouts.slice(-10);
+
+			const trendLabels = recentWorkouts.map(item => {
+				const d = new Date(item.completed_at);
+				return `${d.getMonth() + 1}/${d.getDate()}`;
+			});
+			const trendData = recentWorkouts.map(item => Number(item.duration_minutes || 0));
+
+			workoutTrendChart = createOrReplaceChart(workoutTrendChart, 'workoutTrendChart', {
+				type: 'line',
+				data: {
+					labels: trendLabels,
+					datasets: [{
+						label: 'Minutes',
+						data: trendData,
+						borderColor: '#00c4ff',
+						backgroundColor: 'rgba(0, 196, 255, 0.2)',
+						tension: 0.35,
+						fill: true,
+						pointRadius: 3,
+					}],
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: { legend: { display: false } },
+					scales: {
+						x: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' } },
+						y: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' }, beginAtZero: true },
+					},
+				},
+			});
+
+			const typeMap = {};
+			for (const workout of workouts) {
+				const key = workout.type || 'Unknown';
+				typeMap[key] = (typeMap[key] || 0) + 1;
+			}
+
+			const typeLabels = Object.keys(typeMap);
+			const typeData = Object.values(typeMap);
+
+			workoutTypeChart = createOrReplaceChart(workoutTypeChart, 'workoutTypeChart', {
+				type: 'doughnut',
+				data: {
+					labels: typeLabels,
+					datasets: [{
+						data: typeData,
+						backgroundColor: ['#00c4ff', '#11d19d', '#6f7bf7', '#ffb347', '#ff7a90', '#8bdeff'],
+						borderWidth: 0,
+					}],
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							position: 'bottom',
+							labels: { color: '#a8b4d0', boxWidth: 12 }
+						}
+					}
+				},
+			});
+
+			const habitLabels = habits.map(item => item.name);
+			const habitCurrent = habits.map(item => Number(item.current_value || 0));
+			const habitTarget = habits.map(item => Number(item.target_value || 0));
+
+			habitCompareChart = createOrReplaceChart(habitCompareChart, 'habitCompareChart', {
+				type: 'bar',
+				data: {
+					labels: habitLabels,
+					datasets: [
+						{
+							label: 'Current',
+							data: habitCurrent,
+							backgroundColor: '#00c4ff',
+						},
+						{
+							label: 'Target',
+							data: habitTarget,
+							backgroundColor: 'rgba(17, 209, 157, 0.45)',
+						},
+					],
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { labels: { color: '#a8b4d0' } }
+					},
+					scales: {
+						x: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' } },
+						y: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' }, beginAtZero: true },
+					},
+				},
+			});
+		}
+
+		function renderWeightChart(weightLogs) {
+			const labels = weightLogs.map(item => {
+				const d = new Date(item.log_date);
+				return `${d.getMonth() + 1}/${d.getDate()}`;
+			});
+			const data = weightLogs.map(item => Number(item.weight_kg || 0));
+
+			weightTrendChart = createOrReplaceChart(weightTrendChart, 'weightTrendChart', {
+				type: 'line',
+				data: {
+					labels,
+					datasets: [{
+						label: 'Weight (kg)',
+						data,
+						borderColor: '#ffb347',
+						backgroundColor: 'rgba(255, 179, 71, 0.2)',
+						fill: true,
+						tension: 0.3,
+						pointRadius: 3,
+					}],
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: { legend: { labels: { color: '#a8b4d0' } } },
+					scales: {
+						x: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' } },
+						y: { ticks: { color: '#a8b4d0' }, grid: { color: 'rgba(168,180,208,0.08)' }, beginAtZero: false },
+					},
+				},
+			});
+		}
+
+		function renderAnalysis(dashboard, workouts, habits, profile, weightLogs) {
+			const list = document.getElementById('analysisList');
+			const tags = document.getElementById('analysisTags');
+			list.innerHTML = '';
+			tags.innerHTML = '';
+
+			const insights = [];
+			const badges = [];
+
+			if (workouts.length === 0) {
+				insights.push('No workout sessions logged yet. Add 2 to 3 sessions this week to unlock trend-based guidance.');
+				badges.push('Needs workout data');
+			} else {
+				const totalMinutes = workouts.reduce((sum, item) => sum + Number(item.duration_minutes || 0), 0);
+				const avgMinutes = Math.round(totalMinutes / workouts.length);
+				insights.push(`You have ${workouts.length} logged workouts with an average session length of ${avgMinutes} minutes.`);
+				if (avgMinutes >= 40) {
+					insights.push('Session quality looks strong. Keep this duration and increase frequency gradually for sustainable progress.');
+					badges.push('Strong session quality');
+				} else {
+					insights.push('Average workout duration is on the lighter side. Consider adding 10 to 15 minutes to 2 sessions this week.');
+					badges.push('Duration opportunity');
+				}
+			}
+
+			const hydrationHabit = habits.find(item => item.slug === 'hydration');
+			const sleepHabit = habits.find(item => item.slug === 'sleep');
+			if (hydrationHabit) {
+				const progress = Math.round((Number(hydrationHabit.current_value || 0) / Math.max(Number(hydrationHabit.target_value || 1), 0.01)) * 100);
+				insights.push(`Hydration is at ${Math.min(progress, 100)}% of target today.`);
+				if (progress < 70) {
+					badges.push('Hydration below target');
+				}
+			}
+			if (sleepHabit) {
+				const progress = Math.round((Number(sleepHabit.current_value || 0) / Math.max(Number(sleepHabit.target_value || 1), 0.01)) * 100);
+				insights.push(`Sleep is at ${Math.min(progress, 100)}% of target today.`);
+				if (progress >= 90) {
+					badges.push('Sleep consistency');
+				}
+			}
+
+			const currentWeight = Number(profile.weight_kg || 0);
+			const targetWeight = Number(profile.target_weight_kg || 0);
+			if (currentWeight > 0 && targetWeight > 0) {
+				const diff = Number((currentWeight - targetWeight).toFixed(1));
+				if (diff > 0) {
+					insights.push(`Current weight is ${currentWeight}kg, which is ${diff}kg above your target (${targetWeight}kg).`);
+					badges.push('Weight target active');
+				} else if (diff < 0) {
+					insights.push(`Current weight is ${currentWeight}kg, about ${Math.abs(diff)}kg below your target (${targetWeight}kg).`);
+					badges.push('Below target weight');
+				} else {
+					insights.push(`You are currently at your target weight (${targetWeight}kg).`);
+					badges.push('Target matched');
+				}
+			} else {
+				insights.push('Set target weight in your profile to unlock clearer weight-focused insights.');
+				badges.push('Missing target weight');
+			}
+
+			if (weightLogs.length >= 2) {
+				const first = Number(weightLogs[0].weight_kg || 0);
+				const last = Number(weightLogs[weightLogs.length - 1].weight_kg || 0);
+				const change = Number((last - first).toFixed(1));
+				if (change > 0) {
+					insights.push(`Weight trend across logged entries is up ${change}kg from first to latest measurement.`);
+				} else if (change < 0) {
+					insights.push(`Weight trend across logged entries is down ${Math.abs(change)}kg from first to latest measurement.`);
+				} else {
+					insights.push('Weight trend is stable across logged entries.');
+				}
+				badges.push('Weight trend available');
+			} else {
+				insights.push('Add more weight logs to unlock trend-based weight analysis.');
+				badges.push('Need more weight logs');
+			}
+
+			insights.push(`Current login streak is ${dashboard.current_streak_days} day${dashboard.current_streak_days === 1 ? '' : 's'}. Consistent logins improve trend accuracy.`);
+			badges.push('Analysis auto-generated');
+
+			for (const text of insights) {
+				const li = document.createElement('li');
+				li.textContent = text;
+				list.appendChild(li);
+			}
+
+			for (const text of badges) {
+				const span = document.createElement('span');
+				span.className = 'chip';
+				span.textContent = text;
+				tags.appendChild(span);
+			}
+		}
+
+		async function loadDashboard() {
+			try {
+				const [dashRes, meRes, workoutsRes, habitsRes, profileRes, weightLogsRes] = await Promise.all([
+					fetch(`${API_BASE}/dashboard/user/${userId}`),
+					fetch(`${API_BASE}/auth/me/${userId}`),
+					fetch(`${API_BASE}/workouts/user/${userId}`),
+					fetch(`${API_BASE}/habits/user/${userId}`),
+					fetch(`${API_BASE}/users/${userId}/details?fields=gender,height_cm,weight_kg,target_weight_kg`),
+					fetch(`${API_BASE}/users/${userId}/weight-logs`),
+				]);
+
+				if (!dashRes.ok || !meRes.ok || !workoutsRes.ok || !habitsRes.ok || !profileRes.ok || !weightLogsRes.ok) {
+					throw new Error('Failed to load dashboard data');
+				}
+
+				const dashboard = await dashRes.json();
+				const me = await meRes.json();
+				const workouts = await workoutsRes.json();
+				const habits = await habitsRes.json();
+				const profile = await profileRes.json();
+				const weightLogs = await weightLogsRes.json();
+
+				document.getElementById('greeting').textContent = `Welcome back, ${me.name}.`;
+				document.getElementById('streak').textContent = dashboard.current_streak_days;
+				document.getElementById('workouts').textContent = dashboard.total_workouts;
+				document.getElementById('activeHabits').textContent = dashboard.active_habits;
+				document.getElementById('goals').textContent = dashboard.goals_completed;
+				document.getElementById('streakSummary').textContent = dashboard.streak_summary;
+
+				setProgress('hydration', dashboard.hydration_progress_pct);
+				setProgress('sleep', dashboard.sleep_progress_pct);
+				setProgress('workout', dashboard.workout_progress_pct);
+				renderCharts(workouts, habits);
+				renderWeightChart(weightLogs);
+				renderAnalysis(dashboard, workouts, habits, profile, weightLogs);
+			} catch (error) {
+				document.getElementById('greeting').textContent = 'Unable to load dashboard right now.';
+				document.getElementById('streakSummary').textContent = 'Try again in a moment.';
+				document.getElementById('analysisList').innerHTML = '<li>Could not generate analysis because dashboard data is unavailable.</li>';
+				console.error(error);
+			}
+		}
+
+		async function logWeight() {
+			const input = document.getElementById('weightInput');
+			const value = Number(input.value);
+			if (!value || value <= 0) {
+				alert('Please enter a valid weight in kg.');
+				return;
+			}
+
+			const response = await fetch(`${API_BASE}/users/${userId}/weight-logs`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ weight_kg: value }),
+			});
+
+			if (!response.ok) {
+				alert('Failed to log weight.');
+				return;
+			}
+
+			input.value = '';
+			loadDashboard();
+		}
+
+		loadDashboard();
+	</script>
+</body>
+</html>

@@ -6,7 +6,18 @@ class GoalCreate(BaseModel):
     user_id: int = Field(..., example=1)
     title: str = Field(..., example="Complete 5 workouts")
     description: str = Field(..., example="Build a consistent weekly routine")
+    goal_type: str = Field(..., example="habit_completed_today")
+    target_value: float = Field(..., example=5)
     due_date: date | None = Field(None, example="2026-12-31")
+
+
+class GoalUpdate(BaseModel):
+    title: str | None = Field(None, example="Complete 6 workouts")
+    description: str | None = Field(None, example="Build a stronger weekly routine")
+    goal_type: str | None = Field(None, example="habit_streak")
+    target_value: float | None = Field(None, example=6)
+    due_date: date | None = Field(None, example="2026-12-31")
+    completed: bool | None = Field(None, example=True)
 
 
 class GoalResponse(BaseModel):
@@ -14,6 +25,8 @@ class GoalResponse(BaseModel):
     user_id: int
     title: str
     description: str
+    goal_type: str
+    target_value: float
     due_date: date | None
     completed: bool
 

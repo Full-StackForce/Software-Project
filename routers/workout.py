@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Form
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, HTTPException
 from typing import List
 
-from controllers.workout_controller import create_workout, list_workouts
-from schemas.workout import WorkoutCreate, WorkoutResponse
+from controllers.workout_controller import create_workout, delete_workout, get_workout, list_workouts, list_workouts_by_user, update_workout
+from schemas.workout import WorkoutCreate, WorkoutResponse, WorkoutUpdate
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])
 
@@ -17,66 +16,30 @@ def create_workout_route(payload: WorkoutCreate):
 def get_workouts():
     return list_workouts()
 
-@router.get("/new", response_class=HTMLResponse)
-def new_workout_form():
-    return """
-      <html>
-      <head>   
-            <title>Log a Workout</title>
-      </head>
-      <body>
-           <h1>Log a Workout</h1>
-           <form action="/workouts/new" method="post">
-               <label for="user_id">User ID</label><br>
-               <input type="number" id="user_id" name="user_id" required><br><br>
 
-               <label for="workout_id">Workout ID</label><br>
-               <input type="text" id="type" name="type" placeholder="e.g. Cardio, Strength,Yoga" required><br><br>
-    
-               <label for="duration_minutes">Duration (minutes)</label><br>
-               <input type="number" id="duration_minutes" name="duration_minutes" required><br><br>
-    
-               <label for="notes">Notes (optional)</label><br>
-               <textarea id="notes" name="notes" rows="3"></textarea><br><br>
+@router.get("/{workout_id}", response_model=WorkoutResponse)
+def get_workout_route(workout_id: int):
+    workout = get_workout(workout_id)
+    if not workout:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    return workout
 
-               <button type="submit">Submit Workout</button>
-            </form>
-        </body>
-    </html>
-    """
 
-@router.post("/new", response_class=HTMLResponse)
-def submit_workout_form(
-    user_id: int = Form(...),
-    type: str = Form(...),
-    duration_minutes: int = Form(...),
-    notes: str = Form(""),
-):
-    payload = WorkoutCreate(
-        user_id=user_id,
-        type=type,
-        duration_minutes=duration_minutes,
-        calories_burned=None,
-        notes=notes or None,
-    )
-    workout = create_workout(payload)
+@router.put("/{workout_id}", response_model=WorkoutResponse)
+def update_workout_route(workout_id: int, payload: WorkoutUpdate):
+    workout = update_workout(workout_id, payload)
+    if not workout:
+        raise HTTPException(status_code=404, detail="Workout not found")
+    return workout
 
-    return f"""
-       <html>
-           <head>
-               <title>Workout Logged</title>
-           </head>
-           <body>
-               <h1>Workout Logged!</h1>
-               <p>Your workout was saved successfully.</p>
-               <ul>
-                   <li><strong>User ID:</strong> {workout.user_id}</li>
-                   <li><strong>Type:</strong> {workout.type}</li>
-                   <li><strong>Duration:</strong> {workout.duration_minutes} minutes</li>
-                   <li><strong>Notes:</strong> {workout.notes or "-"}</li>
-                   <li><strong>Logged at:</strong> {workout.completed_at}</li>
-               </ul>
-               <p><a href="/workouts/new">Log another workout</a></p>
-           </body>
-       </html>
-       """
+
+@router.get("/user/{user_id}", response_model=List[WorkoutResponse])
+def get_user_workouts(user_id: int):
+    return list_workouts_by_user(user_id)
+
+
+@router.delete("/{workout_id}")
+def delete_workout_route(workout_id: int):
+    if not delete_workout(workout_id):
+        raise HTTPException(status_code=404, detail="Workout not found")
+    return {"message": "Workout deleted"}

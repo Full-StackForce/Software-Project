@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        input {
+            margin: 5px;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Login Page</h2>
+
+    <input type="email" id="email" placeholder="Email" />
+    <br>
+    <input type="password" id="password" placeholder="Password" />
+    <br><br>
+
+    <button onclick="login()">Login</button>
+
+    <p id="message"></p>
+
+    <script>
+const STORAGE_KEYS = {
+    userId: 'userId',
+    userName: 'userName',
+    userEmail: 'userEmail',
+    userStreak: 'userStreak'
+};
+
+async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        console.log("FULL RESPONSE:", data);
+
+        if (response.ok) {
+            document.getElementById("message").innerText = data.message;
+            // Store user session
+            localStorage.setItem(STORAGE_KEYS.userId, data.user_id);
+            localStorage.setItem(STORAGE_KEYS.userName, data.name);
+            localStorage.setItem(STORAGE_KEYS.userEmail, data.email);
+            localStorage.setItem(STORAGE_KEYS.userStreak, data.current_streak ?? 0);
+            // Redirect to home after 1 second
+            setTimeout(() => {
+                window.location.href = "http://127.0.0.1:8000/home";
+            }, 1000);
+        } else {
+            document.getElementById("message").innerText = data.detail;
+        }
+
+    } catch (error) {
+        console.error("ERROR:", error);
+        document.getElementById("message").innerText = "Request failed";
+    }
+}
+</script>
+</body>
+</html>

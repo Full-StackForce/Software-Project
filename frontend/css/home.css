@@ -1,0 +1,25 @@
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090A10;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131520;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2D3142;
+            border-radius: 3px;
+        }
+        .glass-card {
+            background: rgba(19, 21, 32, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .shimmer-effect {
+            background: linear-gradient(90deg, #131520 25%, #202434 50%, #131520 75%);
+            background-size: 200% 100%;
+        }

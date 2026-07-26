@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsePoint - Daily Workspace & Wellness Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="/frontend/js/home-tailwind.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/frontend/css/common.css">
+    <link rel="stylesheet" href="/frontend/css/home.css">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="pp-page-shell pp-page-shell-spread custom-scrollbar">
+
+    <div class="ambient-glow-top"></div>
+    <div class="ambient-glow-bottom"></div>
+
+    <!-- Floating Success Toast Notification System -->
+    <div id="toast" class="pp-toast">
+        <div class="pp-toast-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="pp-toast-title">Activity Logged</h4>
+            <p id="toastMessage" class="pp-toast-msg">Your daily metrics have been successfully integrated.</p>
+        </div>
+    </div>
+
+    <!-- Navigation Bar & Tabs -->
+    <nav class="pp-navbar">
+        <div class="pp-nav-wrapper">
+            
+            <!-- Logo Section Placeholder (No brand logos) -->
+            <div class="pp-logo-box">
+                <div class="pp-logo-icon">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="pp-logo-text">
+                        PULSE<span class="text-pulseGreen">POINT</span>
+                    </span>
+                    <span class="pp-logo-sub">Personal Performance Hub</span>
+                </div>
+            </div>
+
+            <!-- Responsive Navigation Tabs -->
+            <div class="pp-tab-container">
+                <button onclick="switchTab('workspace')" id="tabBtn-workspace" class="pp-tab-btn pp-tab-btn--active">
+                    Workspace
+                </button>
+                <a href="/dashboard" id="tabBtn-dashboard" class="pp-tab-btn pp-tab-btn--inactive">
+                    Dashboard
+                </a>
+                <button onclick="switchTab('workouts')" id="tabBtn-workouts" class="pp-tab-btn pp-tab-btn--inactive">
+                    Workouts
+                </button>
+                <button onclick="switchTab('habits')" id="tabBtn-habits" class="pp-tab-btn pp-tab-btn--inactive">
+                    Habit Builder
+                </button>
+                <a href="/challanges" id="tabBtn-challenges" class="pp-tab-btn pp-tab-btn--inactive">
+                    Challenges
+                </a>
+            </div>
+
+            <!-- User Context Profile Area -->
+            <div class="pp-user-menu">
+                <div class="pp-streak-badge">
+                    <span class="pp-streak-dot"></span>
+                    <span class="text-gray-400">Streak:</span> 
+                    <span id="streakCounter" class="text-white font-bold font-mono">0 Days</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="pp-profile-meta">
+                        <div id="userDisplayName" class="pp-profile-name">Loading...</div>
+                        <div class="pp-profile-status">Active User</div>
+                    </div>
+                    <button onclick="logout()" title="Logout" class="pp-logout-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tab 1: Workspace Grid Dashboard View -->
+    <main id="tab-workspace" class="tab-content pp-main-layout pp-main-layout-tabs">
+        
+        <!-- ==================== LEFT AREA: INPUT LOG CONSOLE ==================== -->
+        <section class="pp-layout-left lg:sticky lg:top-28 space-y-6">
+            
+            <div class="pp-panel-shell">
+                <div class="pp-panel-header">
+                    <div>
+                        <h2 class="pp-section-title tracking-tight">
+                            <svg class="w-5 h-5 text-pulseGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Log Your Daily Pulse
+                        </h2>
+                        <p class="pp-section-copy">Updates populate charts and progress meters instantly.</p>
+                    </div>
+                    <span class="pp-panel-date" id="dateDisplay">
+                        Today, June 24
+                    </span>
+                </div>
+
+                <!-- Logger Forms Stack -->
+                <div class="pp-panel-stack">
+
+                    <!-- Hydration Tracker -->
+                    <div class="pp-subcard hover:border-neonBlue/40">
+                        <div class="pp-subcard-header">
+                            <div class="pp-subcard-title-box">
+                                <span class="pp-subcard-icon-blue">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 15.382K12 21 4 15.382l8-10.382 8 10.382z"></path>
+                                    </svg>
+                                </span>
+                                <span class="pp-subcard-label">Hydration Tracker</span>
+                            </div>
+                            <span class="pp-subcard-target">Target: 2.5L</span>
+                        </div>
+                        
+                        <div class="pp-hydration-row">
+                            <div class="flex-grow">
+                                <div class="text-xs text-gray-400">Log water intake amount:</div>
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="addWater(250)" class="pp-btn-ghost flex-grow text-xs py-2 text-indigo-300 hover:border-neonBlue hover:text-white">+ 250ml</button>
+                                    <button onclick="addWater(500)" class="pp-btn-ghost flex-grow text-xs py-2 text-indigo-300 hover:border-neonBlue hover:text-white">+ 500ml</button>
+                                    <button onclick="resetWater()" class="pp-btn-ghost px-3 text-xs py-2 text-gray-500 hover:border-red-500/40 hover:text-red-400">Reset</button>
+                                </div>
+                            </div>
+                            <!-- Visual glass element -->
+                            <div class="pp-fluid-display">
+                                <div id="waterFluidLevel" class="pp-fluid-bar" style="height: 0%;"></div>
+                                <div class="pp-fluid-pct">
+                                    <span id="waterGlassPercent">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sleep Tracker -->
+                    <div class="pp-subcard hover:border-brandPurple/40">
+                        <div class="pp-subcard-header">
+                            <div class="pp-subcard-title-box">
+                                <span class="pp-subcard-icon-purple">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                    </svg>
+                                </span>
+                                <span class="pp-subcard-label">Sleep Duration</span>
+                            </div>
+                            <span class="pp-subcard-target">Target: 8 Hours</span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="pp-sleep-grid">
+                                <div>
+                                    <label class="pp-control-label text-[10px] mb-1">Went To Bed</label>
+                                    <input type="time" id="bedtimeInput" value="22:30" onchange="calculateSleep()" class="pp-field text-xs text-center font-mono">
+                                </div>
+                                <div>
+                                    <label class="pp-control-label text-[10px] mb-1">Woke Up</label>
+                                    <input type="time" id="waketimeInput" value="06:30" onchange="calculateSleep()" class="pp-field text-xs text-center font-mono">
+                                </div>
+                            </div>
+                            <div class="pp-sleep-summary">
+                                <span class="text-xs text-gray-400">Total Sleep Calculated:</span>
+                                <span id="sleepSum" class="text-xs font-bold font-mono text-brandPurple">8.0 hrs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Habit Checklist (Custom habits feed here dynamically) -->
+                    <div class="pp-subcard hover:border-indigo-400/40">
+                        <div class="pp-subcard-header">
+                            <div class="pp-subcard-title-box">
+                                <span class="pp-subcard-icon-indigo">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </span>
+                                <span class="pp-subcard-label">Habit Checklist</span>
+                            </div>
+                            <span class="pp-subcard-target">Live Sync</span>
+                        </div>
+
+                        <!-- Habit checkboxes with dynamic interaction -->
+                        <div id="dynamicChecklistContainer" class="space-y-2.5">
+                            <!-- Populated dynamically via state.habits in javascript -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================== RIGHT AREA: DASHBOARD ANALYTICS ==================== -->
+        <section class="pp-layout-right space-y-6">
+            
+            <!-- Global Dashboard Rating Ring -->
+            <div class="pp-shell-xl-grid">
+                
+                <div class="pp-ring-shell">
+                    <!-- High Fidelity Progress Ring SVG -->
+                    <div class="pp-ring-container">
+                        <svg class="pp-ring-svg">
+                            <!-- Background Circle -->
+                            <circle cx="64" cy="64" r="54" stroke="#1F2937" stroke-width="8" fill="transparent"/>
+                            <!-- Indicator Circle -->
+                            <circle id="dashPulseRing" cx="64" cy="64" r="54" stroke="#10B981" stroke-width="8" stroke-dasharray="339.2" stroke-dashoffset="101.7" stroke-linecap="round" fill="transparent" class="transition-all duration-1000"/>
+                        </svg>
+                        <div class="pp-ring-center">
+                            <span id="dashPulseScore" class="pp-ring-score">70%</span>
+                            <span class="pp-ring-label">Pulse Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pp-meta-shell">
+                    <span class="pp-zone-badge">Optimal Zone</span>
+                    <h3 class="text-lg font-bold text-white">Your Rhythm is locked.</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        Your combined scores across sleep, hydration, custom habits, and workout frequency calculate into your optimal daily balance index. Unlocking custom targets increases rating weight.
+                    </p>
+                    <div class="pp-meta-grid">
+                        <div>
+                            <div class="pp-meta-title">Metabolic Focus</div>
+                            <div class="pp-meta-value">High Performance</div>
+                        </div>
+                        <div>
+                            <div class="pp-meta-title">Circadian Balance</div>
+                            <div class="pp-meta-value font-mono" id="circadianStats">Aligned</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 4-Card Multi-Column Analytics Output -->
+            <div class="pp-telemetry-grid">
+
+                <!-- Card 1: Hydration Telemetry -->
+                <div class="pp-metric-card pp-card-neon">
+                    <div>
+                        <div class="pp-metric-header">
+                            <span class="pp-metric-title">Hydration Telemetry</span>
+                            <span class="pp-subcard-icon-blue">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="pp-metric-value" id="dashWaterText">1.2 <span class="pp-metric-subtext">of 2.5L</span></h4>
+                        <p class="pp-metric-copy font-mono text-[11px]" id="hydrationStatusCommentary">Log water to refresh performance indicators.</p>
+                    </div>
+
+                    <div class="pp-metric-footer">
+                        <div class="pp-progress-container">
+                            <span class="text-gray-500">Progress toward goal</span>
+                            <span id="dashWaterProgressPercent" class="text-neonBlue font-bold font-mono">48%</span>
+                        </div>
+                        <div class="pp-progress-rail">
+                            <div id="dashWaterProgressBar" class="bg-gradient-to-r from-neonBlue to-sky-400 h-full w-[48%] rounded-full transition-all duration-700"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Sleep and Quality Scores -->
+                <div class="pp-metric-card pp-card-purple">
+                    <div>
+                        <div class="pp-metric-header">
+                            <span class="pp-metric-title">Circadian Score</span>
+                            <span class="pp-subcard-icon-purple">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="pp-metric-value" id="dashSleepText">8.0 hrs <span class="pp-metric-subtext">Duration</span></h4>
+                        <p class="pp-metric-copy">Estimated deep sleep cycles optimized on your sleep/wake targets.</p>
+                    </div>
+
+                    <div class="pp-metric-footer">
+                        <div class="pp-progress-container">
+                            <span class="text-gray-500">Sleep Quality Index</span>
+                            <span id="sleepQualityIndex" class="text-brandPurple font-bold font-mono">Excellent (92%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Active Goals Segmented Tracker -->
+                <div class="pp-metric-card pp-card-green">
+                    <div>
+                        <div class="pp-metric-header">
+                            <span class="pp-metric-title">Workout Frequency</span>
+                            <span class="p-1.5 rounded-lg bg-pulseGreen/10 text-pulseGreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="pp-metric-value" id="dashActiveDaysCount">2 <span class="pp-metric-subtext">Workouts Logged</span></h4>
+                        <p class="pp-metric-copy">Total physical training blocks completed inside active user session.</p>
+                    </div>
+
+                    <div class="pp-metric-footer">
+                        <div class="text-[10px] text-gray-500 mb-2 font-medium">Goal progress map (weekly):</div>
+                        <div class="flex items-center gap-1.5" id="dashActiveDaysProgressContainer">
+                            <!-- Generated Dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Habit Consistency metrics -->
+                <div class="pp-metric-card pp-card-indigo">
+                    <div>
+                        <div class="pp-metric-header">
+                            <span class="pp-metric-title">Custom Habits Tracker</span>
+                            <span class="pp-subcard-icon-indigo">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4"></path>
+                                </svg>
+                            </span>
+                        </div>
+                        <h4 class="pp-metric-value" id="dashHabitText">0% <span class="pp-metric-subtext">Today</span></h4>
+                        <p class="pp-metric-copy">Continuous checklist ratio calculated live across configured daily targets.</p>
+                    </div>
+
+                    <div class="pp-metric-footer">
+                        <div class="pp-progress-container">
+                            <span class="text-gray-500">Habit Streaks Status</span>
+                            <span id="dashHabitsStatus" class="text-gray-400 font-mono">0/0 Completed</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- High Fidelity Heart Rate & Fitness Trends Line Chart SVG -->
+            <div class="pp-shell-xl">
+                <div class="pp-chart-header">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Daily Rhythm Trend Monitor</h3>
+                        <p class="text-xs text-gray-400">Visualizing metabolic workload curves plotted against logged workout times.</p>
+                    </div>
+                    <div class="pp-chart-legend">
+                        <span class="pp-chart-dot"></span>
+                        <span class="text-xs text-gray-400">Activity Level</span>
+                    </div>
+                </div>
+
+                <div class="pp-chart-area">
+                    <svg class="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
+                        <!-- Chart Grid Lines -->
+                        <line x1="0" y1="30" x2="500" y2="30" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+                        <line x1="0" y1="75" x2="500" y2="75" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+                        <line x1="0" y1="120" x2="500" y2="120" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
+
+                        <defs>
+                            <linearGradient id="chartGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.3" />
+                                <stop offset="100%" stop-color="#6366F1" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Area path under trend line -->
+                        <path id="chartArea" d="M0,150 L0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70 L500,150 Z" fill="url(#chartGlow)"/>
+
+                        <!-- Trend Line path -->
+                        <path id="chartLine" d="M0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70" fill="none" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-500"/>
+                        
+                        <!-- Pulse Point indicators -->
+                        <circle cx="80" cy="100" r="4.5" fill="#131520" stroke="#6366F1" stroke-width="3"/>
+                        <circle id="liveChartIndicator" cx="240" cy="110" r="4.5" fill="#131520" stroke="#10B981" stroke-width="3" class="transition-all duration-300"/>
+                        <circle cx="400" cy="45" r="4.5" fill="#131520" stroke="#6366F1" stroke-width="3"/>
+                    </svg>
+
+                    <!-- Data Tooltip Tag Inside Graph -->
+                    <div class="pp-chart-tooltip">
+                        <span class="text-gray-500">METABOLIC WORKLOAD</span>
+                        <span class="text-white font-extrabold" id="peakActiveDisplay">Active (Normal)</span>
+                    </div>
+                </div>
+
+                <div class="pp-chart-timeline">
+                    <span>08:00 AM</span>
+                    <span>12:00 PM</span>
+                    <span>04:00 PM</span>
+                    <span>08:00 PM</span>
+                    <span>12:00 AM</span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Tab 2: Dedicated Workouts Hub Tab -->
+    <main id="tab-workouts" class="tab-content hidden pp-main-layout pp-main-layout-tabs">
+        <!-- Log Workout Panel -->
+        <section class="lg:col-span-5 pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">
+                    <svg class="w-5 h-5 text-pulseGreen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Record New Session
+                </h2>
+                <p class="pp-section-copy">Populate training metrics and increment active fitness score weights.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="pp-control-label">Workout Name / Type</label>
+                    <select id="workoutTypeSelect" class="pp-field pp-select text-sm focus:outline-none focus:border-pulseGreen">
+                        <option value="Strength Training">Strength Training</option>
+                        <option value="Cardio Run">Cardio Run</option>
+                        <option value="Yoga & Mobility">Yoga & Mobility</option>
+                        <option value="HIIT / Functional Circuit">HIIT / Functional Circuit</option>
+                        <option value="Swimming">Swimming</option>
+                        <option value="Custom Active Movement">Custom Active Movement</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="pp-control-label mb-0">Duration (Minutes)</label>
+                        <span id="workoutDurationLabel" class="text-xs text-pulseGreen font-mono font-bold">45 mins</span>
+                    </div>
+                    <input type="range" id="workoutDurationSlider" min="5" max="180" step="5" value="45" oninput="document.getElementById('workoutDurationLabel').textContent = this.value + ' mins'" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-pulseGreen">
+                </div>
+
+                <div>
+                    <label class="pp-control-label">Intensity Profile</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="Low" class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">Low</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="Medium" checked class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">Medium</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="intensityRadio" value="High" class="sr-only peer">
+                            <div class="text-center p-3 text-xs font-semibold rounded-xl border border-panelBorder bg-darkBg text-gray-400 peer-checked:border-pulseGreen peer-checked:text-white transition-all">High</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="pp-control-label">Custom Notes (Optional)</label>
+                    <input type="text" id="workoutNotes" placeholder="e.g. Legs & Core focus, split set" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pulseGreen">
+                </div>
+
+                <button onclick="logWorkout()" class="w-full bg-pulseGreen text-darkBg font-extrabold text-xs py-3 rounded-xl hover:bg-emerald-400 transition-all shadow-lg hover:shadow-pulseGreen/15 uppercase tracking-wider font-mono">
+                    Log Dynamic Session
+                </button>
+            </div>
+        </section>
+
+        <!-- Workout History and Analytics Panel -->
+        <section class="lg:col-span-7 pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">Dynamic Session History</h2>
+                <p class="pp-section-copy">A timeline of physical workload entries tracked inside this active session.</p>
+            </div>
+
+            <!-- Timeline Stack -->
+            <div id="workoutHistoryContainer" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Dynamically rendered custom list of logged items -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Tab 3: Custom Habits Builder Tab -->
+    <main id="tab-habits" class="tab-content hidden pp-main-layout pp-main-layout-tabs">
+        <!-- Add Custom Habit Configuration Console -->
+        <section class="lg:col-span-5 pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Design Custom Habit
+                </h2>
+                <p class="pp-section-copy">Configure user habits. They will automatically sync to your dashboard loggers.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="pp-control-label">Habit Name</label>
+                    <input type="text" id="habitNameInput" placeholder="e.g. 10m Breathing Drill" class="w-full bg-darkBg border border-panelBorder rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brandPurple placeholder-gray-600">
+                </div>
+
+                <div>
+                    <label class="pp-control-label">Metric Type / Track Method</label>
+                    <select id="habitTrackMethod" onchange="toggleHabitTargetOptions()" class="pp-field pp-select text-sm focus:outline-none focus:border-brandPurple">
+                        <option value="checkbox">Yes / No Checkbox</option>
+                        <option value="numeric">Numerical Target Counter (e.g. Cups, Liters)</option>
+                        <option value="duration">Target Duration (Minutes)</option>
+                    </select>
+                </div>
+
+                <!-- Numerical/Counter specific target settings, hidden by default -->
+                <div id="habitTargetValueWrapper" class="hidden transition-all duration-200">
+                    <label class="pp-control-label">Daily Goal Value</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="habitTargetNumber" value="5" min="1" max="100" class="w-2/3 bg-darkBg border border-panelBorder rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-brandPurple">
+                        <input type="text" id="habitUnit" placeholder="e.g. Cups" class="w-1/3 bg-darkBg border border-panelBorder rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-brandPurple">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="pp-control-label">Category Focus</label>
+                    <select id="habitCategory" class="pp-field pp-select text-sm focus:outline-none focus:border-brandPurple">
+                        <option value="Mindfulness">Mindfulness & Mental Health</option>
+                        <option value="Nutrition">Nutrition & Diet</option>
+                        <option value="Fitness">Fitness & Activity</option>
+                        <option value="Productivity">Workspace & Focus</option>
+                    </select>
+                </div>
+
+                <button onclick="createNewHabit()" class="w-full bg-indigo-500 text-white font-extrabold text-xs py-3 rounded-xl hover:bg-indigo-400 transition-all shadow-lg hover:shadow-indigo-500/15 uppercase tracking-wider font-mono">
+                    Construct New Habit
+                </button>
+            </div>
+        </section>
+
+        <!-- Dynamic Habits Inventory -->
+        <section class="lg:col-span-7 pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">Active Habits Inventory</h2>
+                <p class="pp-section-copy">Live habits deployed within your current daily tracking cycle.</p>
+            </div>
+
+            <!-- List of created habits -->
+            <div id="customHabitsInventory" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+                <!-- Dynamically rendered list of deployed metrics -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Tab 4: Challenges & Achievements Arena -->
+    <main id="tab-challenges" class="tab-content hidden pp-main-layout pp-main-layout-flow space-y-8">
+        
+        <!-- Top Half: Daily/Weekly Challenges -->
+        <div class="pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">
+                    <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    Active Rhythm Challenges
+                </h2>
+                <p class="pp-section-copy">Perform daily tasks to build health consistency and lock down high scores.</p>
+            </div>
+
+            <!-- Challenges Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Challenge Card 1 -->
+                <div class="pp-card pp-card-amber flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md tracking-wider">Hydration Quest</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Endures 3d</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Aqua Force Tracker</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Reach your full 2.5L daily hydration target inside the workspace.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressWater" class="text-amber-400 font-bold">48%</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressWaterBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full w-[48%] rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Card 2 -->
+                <div class="pp-card pp-card-indigo flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-2 py-0.5 rounded-md tracking-wider">Fitness Milestone</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Endures 7d</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Century Active Club</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Complete at least 100 cumulative minutes of exercise sessions.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressFitness" class="text-indigo-400 font-bold">75 / 100 mins</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressFitnessBar" class="bg-gradient-to-r from-indigo-500 to-indigo-400 h-full w-[75%] rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenge Card 3 -->
+                <div class="pp-card pp-card-green flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] uppercase font-bold text-pulseGreen bg-pulseGreen/10 border border-pulseGreen/20 px-2 py-0.5 rounded-md tracking-wider">Habits Warrior</span>
+                            <span class="text-[10px] text-gray-500 font-mono">Daily</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-white">Checklist Dominant</h4>
+                        <p class="text-xs text-gray-400 leading-relaxed">Cross off and complete 100% of your configured checklist habits.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center text-[10px] font-mono">
+                            <span class="text-gray-500">Target Progress</span>
+                            <span id="challengeProgressHabit" class="text-pulseGreen font-bold">0 / 0</span>
+                        </div>
+                        <div class="w-full bg-panelBg h-1.5 rounded-full overflow-hidden">
+                            <div id="challengeProgressHabitBar" class="bg-gradient-to-r from-pulseGreen to-emerald-400 h-full w-0 rounded-full transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Half: Achievements Arena (Using clean placeholder blocks for unearned icons) -->
+        <div class="pp-shell-xl space-y-6">
+            <div>
+                <h2 class="pp-section-title">
+                    <svg class="w-5 h-5 text-indigo-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                    Performance Badges & Achievements
+                </h2>
+                <p class="pp-section-copy">Placeholder shields unlock dynamically upon executing logs and maintaining continuous daily health targets.</p>
+            </div>
+
+            <!-- Achievements grid using placeholder graphics -->
+            <div id="achievementsGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Populated dynamically via state.achievements in Javascript -->
+            </div>
+        </div>
+    </main>
+
+    <!-- App Bottom Footer Segment -->
+    <footer class="max-w-7xl mx-auto w-full px-6 py-6 border-t border-panelBorder/40 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 gap-4 mt-12">
+        <div class="flex items-center gap-2">
+            <span>&copy; 2026 PulsePoint Daily Workspace Log.</span>
+            <span class="text-gray-700">|</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-panelBg border border-panelBorder text-gray-400">Desktop Release v2.5</span>
+        </div>
+        <div class="flex gap-6">
+            <a href="#" class="hover:text-white transition-all">Support Desk</a>
+            <a href="#" class="hover:text-white transition-all">SaaS Terms</a>
+            <a href="#" class="hover:text-white transition-all">Integrations API</a>
+        </div>
+    </footer>
+
+    <script src="/frontend/js/app-common.js"></script>
+    <script src="/frontend/js/home.js"></script>
+</body>
+</html>

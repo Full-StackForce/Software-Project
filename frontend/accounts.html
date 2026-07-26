@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsePoint — Create Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/frontend/css/common.css">
+    <script src="/frontend/js/app-common.js"></script>
+    <script>
+        const { storage } = window.PulseApp;
+        const PROFILE_STORAGE_MAP = {
+            name: 'pulseName',
+            email: 'pulseEmail',
+            password: 'pulsePassword',
+            timezone: 'pulseTimezone',
+            gender: 'pulseGender',
+            heightCm: 'pulseHeightCm',
+            weightKg: 'pulseWeightKg',
+            targetWeightKg: 'pulseTargetWeightKg',
+            bedtime: 'pulseBedtime',
+            activeDays: 'pulseActiveDays',
+            hydration: 'pulseHydration'
+        };
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#090A10',
+                        panelBg: '#131520',
+                        pulseGreen: '#10B981',
+                        brandPurple: '#6366F1',
+                        neonBlue: '#3B82F6'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #090A10; }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #0d0f1a inset !important; -webkit-text-fill-color: #f3f4f6 !important; }
+        .choice-card.active { border-color: #6366F1 !important; background: rgba(99,102,241,0.15) !important; }
+        .step-pill.active { color: #10B981; border-color: #10B981; background: rgba(16,185,129,0.1); }
+    </style>
+</head>
+<body class="pp-page-shell">
+
+    <!-- Ambient glows -->
+    <div class="pp-ambient-a"></div>
+    <div class="pp-ambient-b"></div>
+
+    <!-- Nav -->
+    <nav class="pp-topbar">
+        <span class="pp-brand">
+            PULSE<span class="text-pulseGreen">POINT</span>
+        </span>
+        <div class="pp-step-info">
+            <span id="stepLabel" class="text-xs font-bold text-gray-400 uppercase tracking-wider">Step 1 of 4</span>
+            <span class="pp-setup-chip">Setup</span>
+        </div>
+    </nav>
+
+    <!-- Progress bar -->
+    <div class="pp-progress-wrap">
+        <div class="pp-progress-track">
+            <div id="progressFill" class="pp-progress-fill" style="width:25%"></div>
+        </div>
+        <!-- Step pills -->
+        <div class="pp-step-row">
+            <div class="step-pill active text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 transition-all" data-step="1">1. Identity</div>
+            <div class="step-pill text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 transition-all" data-step="2">2. Focus</div>
+            <div class="step-pill text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 transition-all" data-step="3">3. Baseline</div>
+            <div class="step-pill text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-700 text-gray-400 transition-all" data-step="4">4. Body Metrics</div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="pp-main-grid">
+
+        <!-- Left: Form panel -->
+        <section class="pp-form-panel pp-panel-shell lg:p-8" id="formPanel">
+            <!-- Rendered by JS -->
+        </section>
+
+        <!-- Right: Live dashboard preview -->
+        <section class="pp-preview-col">
+            <div class="pp-preview-shell">
+
+                <div class="absolute inset-0 bg-gradient-to-tr from-brandPurple/5 via-transparent to-neonBlue/5 rounded-[2rem] pointer-events-none"></div>
+
+                <!-- Preview header -->
+                <div class="pp-preview-head">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500/30 border border-red-500/40"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500/30 border border-yellow-500/40"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/40"></span>
+                        <span class="text-xs text-gray-500 font-mono ml-2">Future dashboard preview</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-pulseGreen animate-pulse"></span>
+                        <span class="text-xs font-bold text-pulseGreen tracking-wider uppercase">Live Preview</span>
+                    </div>
+                </div>
+
+                <!-- Preview cards -->
+                <div class="pp-preview-grid">
+
+                    <!-- Card 1: Greeting -->
+                    <div class="pp-preview-card hover:border-brandPurple/30 group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-500 group-hover:rotate-12 transition-transform">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+                                        </svg>
+                                    </span>
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Morning Pulse</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-mono">Step 1</span>
+                            </div>
+                            <h3 class="text-lg font-extrabold text-white leading-snug">
+                                Good morning,<br>
+                                <span id="dashGreetingName" class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-brandPurple">You</span>
+                            </h3>
+                            <p class="text-xs text-gray-400 mt-2 leading-relaxed">Your custom wellness workspace is being calibrated.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-800/50">
+                            <div class="flex items-center justify-between text-[10px] mb-1.5">
+                                <span class="text-gray-500 font-medium">Dashboard setup</span>
+                                <span id="dashSetupPct" class="text-pulseGreen font-bold font-mono">33% Ready</span>
+                            </div>
+                            <div class="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden">
+                                <div id="dashSetupBar" class="bg-gradient-to-r from-brandPurple to-pulseGreen h-full rounded-full transition-all duration-700" style="width:33%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Focus -->
+                    <div class="pp-preview-card hover:border-brandPurple/30 group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Focus Objectives</span>
+                                <span class="text-[10px] text-gray-500 font-mono">Step 2</span>
+                            </div>
+                            <div class="space-y-2" id="dashFocusBadges">
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-gray-800/60 border border-gray-700/40">
+                                    <span class="text-xs text-gray-500">No focus selected yet</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-800/50 flex items-center justify-between">
+                            <span class="text-[10px] text-gray-500">Calibration status</span>
+                            <div class="flex items-center gap-1" id="dashFocusDots">
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-700"></span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-gray-700"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Baselines -->
+                    <div class="pp-preview-card hover:border-brandPurple/30 group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Targets Locked</span>
+                                <span class="text-[10px] text-gray-500 font-mono">Step 3</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-panelBg/80 p-2.5 rounded-xl border border-gray-800/50 flex flex-col items-center justify-center text-center">
+                                    <svg class="w-4 h-4 text-sky-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C8 8 6 11 6 14a6 6 0 0012 0c0-3-2-6-6-12z"/>
+                                    </svg>
+                                    <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Water</span>
+                                    <span id="dashWaterText" class="text-xs font-bold text-white font-mono mt-0.5">—</span>
+                                </div>
+                                <div class="bg-panelBg/80 p-2.5 rounded-xl border border-gray-800/50 flex flex-col items-center justify-center text-center">
+                                    <svg class="w-4 h-4 text-indigo-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Sleep</span>
+                                    <span id="dashBedtimeText" class="text-xs font-bold text-white font-mono mt-0.5">—</span>
+                                </div>
+                                <div class="bg-panelBg/80 p-2.5 rounded-xl border border-gray-800/50 flex flex-col items-center justify-center text-center">
+                                    <svg class="w-4 h-4 text-amber-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                    </svg>
+                                    <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-wider">Active</span>
+                                    <span id="dashActiveDaysText" class="text-xs font-bold text-white font-mono mt-0.5">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-800/50">
+                            <span class="text-[9px] text-gray-500 block uppercase font-bold tracking-wider mb-1.5">Weekly Goal Progress</span>
+                            <div class="flex items-center gap-1" id="dashActiveDaysProgressContainer">
+                                <!-- generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Account status -->
+                    <div class="pp-preview-card hover:border-brandPurple/30 group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Account Status</span>
+                                <span class="text-[10px] text-gray-500 font-mono">Summary</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-panelBg/80 border border-gray-800/50">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Identity</span>
+                                    <span id="statusIdentity" class="text-[10px] font-mono text-gray-600 bg-gray-800/60 px-1.5 py-0.5 rounded">Pending</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-panelBg/80 border border-gray-800/50">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Focus</span>
+                                    <span id="statusFocus" class="text-[10px] font-mono text-gray-600 bg-gray-800/60 px-1.5 py-0.5 rounded">Pending</span>
+                                </div>
+                                <div class="flex items-center justify-between p-2 rounded-xl bg-panelBg/80 border border-gray-800/50">
+                                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Baseline</span>
+                                    <span id="statusBaseline" class="text-[10px] font-mono text-gray-600 bg-gray-800/60 px-1.5 py-0.5 rounded">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-800/50 flex items-center justify-between">
+                            <span class="text-[10px] text-gray-500">Telemetry feed</span>
+                            <div class="w-16 h-3 bg-pulseGreen/10 border border-pulseGreen/20 rounded-full flex items-center justify-center">
+                                <span class="text-[8px] font-bold text-pulseGreen font-mono uppercase tracking-widest">OK</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Pill tags -->
+                <div class="flex flex-wrap gap-2 pt-1 relative z-10">
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-brandPurple/10 border border-brandPurple/20 text-indigo-300 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brandPurple"></span> Personalized greeting
+                    </span>
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-neonBlue/10 border border-neonBlue/20 text-blue-300 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-neonBlue"></span> Pinned focus metrics
+                    </span>
+                    <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> <span id="tagActiveDays">Active days target</span>
+                    </span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 text-center mt-4">The preview updates as you fill in each step.</p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="pp-footer">
+        <div>&copy; 2026 PulsePoint Inc. All rights reserved.</div>
+        <div class="flex gap-6">
+            <a href="/login" class="hover:text-white transition-colors">Already have an account?</a>
+        </div>
+    </footer>
+
+    <script>
+        // ─── State ────────────────────────────────────────────────────────────────
+        const state = {
+            currentStep: 1,
+            focus: [],
+            profile: {
+                name: storage.get(PROFILE_STORAGE_MAP.name, ''),
+                email: storage.get(PROFILE_STORAGE_MAP.email, ''),
+                password: storage.get(PROFILE_STORAGE_MAP.password, ''),
+                timezone: storage.get(PROFILE_STORAGE_MAP.timezone, 'UTC'),
+                gender: storage.get(PROFILE_STORAGE_MAP.gender, ''),
+                heightCm: storage.get(PROFILE_STORAGE_MAP.heightCm, ''),
+                weightKg: storage.get(PROFILE_STORAGE_MAP.weightKg, ''),
+                targetWeightKg: storage.get(PROFILE_STORAGE_MAP.targetWeightKg, ''),
+                bedtime: storage.get(PROFILE_STORAGE_MAP.bedtime, ''),
+                activeDays: storage.get(PROFILE_STORAGE_MAP.activeDays, '4'),
+                hydration: storage.get(PROFILE_STORAGE_MAP.hydration, '')
+            }
+        };
+
+        // ─── Step definitions ─────────────────────────────────────────────────────
+        const steps = [
+            {
+                id: 1,
+                render: () => `
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-1">Step 1: Identity</h2>
+                        <p class="text-sm text-gray-400">Create your account and personalise the experience.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Full name</label>
+                            <input id="name" type="text" placeholder="Alex Morgan"
+                                class="pp-field">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Email address</label>
+                            <input id="email" type="email" placeholder="alex@email.com"
+                                class="pp-field">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
+                            <input id="password" type="password" placeholder="Min. 6 characters"
+                                class="pp-field">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Time zone</label>
+                            <select id="timezone"
+                                class="pp-field pp-select">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">New York</option>
+                                <option value="America/Los_Angeles">Los Angeles</option>
+                                <option value="Europe/London">London</option>
+                                <option value="Europe/Paris">Paris</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="statusMsg" class="mt-3 text-sm hidden"></div>
+                    <div class="flex justify-end mt-6">
+                        <button onclick="nextStep()" type="button"
+                            class="pp-btn-primary">
+                            Continue →
+                        </button>
+                    </div>
+                `
+            },
+            {
+                id: 2,
+                render: () => `
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-1">Step 2: Core Health Focus</h2>
+                        <p class="text-sm text-gray-400">Choose up to two priorities to pin to your dashboard.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        ${['Sleep Quality & Recovery','Daily Habit Consistency','Physical Activity & Movement','Mental Focus & Stress'].map(item => `
+                            <button type="button" onclick="toggleFocus('${item}')"
+                                data-value="${item}"
+                                class="choice-card p-4 rounded-xl border border-gray-800 bg-darkBg text-left transition-all hover:border-gray-600">
+                                <strong class="text-sm text-white block mb-1">${item}</strong>
+                                <span class="text-xs text-gray-500">Highlighted in your overview.</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="flex justify-between mt-6">
+                        <button onclick="prevStep()" type="button"
+                            class="pp-btn-ghost">
+                            ← Back
+                        </button>
+                        <button onclick="nextStep()" type="button"
+                            class="pp-btn-primary">
+                            Continue →
+                        </button>
+                    </div>
+                `
+            },
+            {
+                id: 3,
+                render: () => `
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-1">Step 3: Establish Baselines</h2>
+                        <p class="text-sm text-gray-400">Set the targets that will power your overview widgets.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Target bedtime</label>
+                            <input id="bedtime" type="time"
+                                class="pp-field">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Days active per week</label>
+                            <select id="activeDays"
+                                class="pp-field pp-select">
+                                <option value="3">3 Days / Week</option>
+                                <option value="4" selected>4 Days / Week</option>
+                                <option value="5">5 Days / Week</option>
+                                <option value="6">6 Days / Week</option>
+                                <option value="7">7 Days / Week</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Daily hydration goal (L)</label>
+                            <input id="hydration" type="number" step="0.1" min="0" placeholder="2.5"
+                                class="pp-field">
+                        </div>
+                    </div>
+                    <div id="statusMsg" class="mt-3 text-sm hidden"></div>
+                    <div class="flex justify-between mt-6">
+                        <button onclick="prevStep()" type="button"
+                            class="pp-btn-ghost">
+                            ← Back
+                        </button>
+                        <button onclick="nextStep()" type="button"
+                            class="pp-btn-success">
+                            Continue →
+                        </button>
+                    </div>
+                `
+            },
+            {
+                id: 4,
+                render: () => `
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-white mb-1">Step 4: Body Metrics</h2>
+                        <p class="text-sm text-gray-400">Used for upcoming dashboard body insights and personalization.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Gender</label>
+                            <select id="gender"
+                                class="pp-field pp-select">
+                                <option value="">Select one</option>
+                                <option value="female">Female</option>
+                                <option value="male">Male</option>
+                                <option value="non-binary">Non-binary</option>
+                                <option value="prefer_not_to_say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Height (cm)</label>
+                                <input id="heightCm" type="number" min="1" step="0.1" placeholder="170"
+                                    class="pp-field">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Weight (kg)</label>
+                                <input id="weightKg" type="number" min="1" step="0.1" placeholder="65"
+                                    class="pp-field">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Target Weight (kg)</label>
+                                <input id="targetWeightKg" type="number" min="1" step="0.1" placeholder="60"
+                                    class="pp-field">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="statusMsg" class="mt-3 text-sm hidden"></div>
+                    <div class="flex justify-between mt-6">
+                        <button onclick="prevStep()" type="button"
+                            class="pp-btn-ghost">
+                            ← Back
+                        </button>
+                        <button onclick="finishFlow()" type="button" id="submitBtn"
+                            class="pp-btn-success">
+                            Complete Setup
+                        </button>
+                    </div>
+                `
+            }
+        ];
+
+        // ─── Helpers ──────────────────────────────────────────────────────────────
+        function showStatus(message, isError = false) {
+            const el = document.getElementById('statusMsg');
+            if (!el) { if (isError) alert(message); return; }
+            el.textContent = message;
+            el.className = `mt-3 text-sm font-medium ${isError ? 'text-red-400' : 'text-pulseGreen'}`;
+            el.classList.remove('hidden');
+        }
+
+        function syncStateFromInputs() {
+            const get = id => { const el = document.getElementById(id); return el ? el.value || '' : ''; };
+            if (document.getElementById('name'))       state.profile.name       = get('name');
+            if (document.getElementById('email'))      state.profile.email      = get('email');
+            if (document.getElementById('password'))   state.profile.password   = get('password');
+            if (document.getElementById('timezone'))   state.profile.timezone   = get('timezone') || 'UTC';
+            if (document.getElementById('gender'))     state.profile.gender     = get('gender');
+            if (document.getElementById('heightCm'))   state.profile.heightCm   = get('heightCm');
+            if (document.getElementById('weightKg'))   state.profile.weightKg   = get('weightKg');
+            if (document.getElementById('targetWeightKg')) state.profile.targetWeightKg = get('targetWeightKg');
+            if (document.getElementById('bedtime'))    state.profile.bedtime    = get('bedtime');
+            if (document.getElementById('activeDays')) state.profile.activeDays = get('activeDays') || '4';
+            if (document.getElementById('hydration'))  state.profile.hydration  = get('hydration');
+        }
+
+        function persistInputs() {
+            syncStateFromInputs();
+            for (const [field, key] of Object.entries(PROFILE_STORAGE_MAP)) {
+                storage.set(key, state.profile[field] || '');
+            }
+        }
+
+        function restoreInputs() {
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            set('name',       state.profile.name);
+            set('email',      state.profile.email);
+            set('password',   state.profile.password);
+            set('timezone',   state.profile.timezone);
+            set('gender',     state.profile.gender);
+            set('heightCm',   state.profile.heightCm);
+            set('weightKg',   state.profile.weightKg);
+            set('targetWeightKg', state.profile.targetWeightKg);
+            set('bedtime',    state.profile.bedtime);
+            set('activeDays', state.profile.activeDays);
+            set('hydration',  state.profile.hydration);
+        }
+
+        function validateIdentityStep() {
+            syncStateFromInputs();
+            if (!state.profile.name.trim()) { showStatus('Please enter your name.', true); return false; }
+            if (!state.profile.email.trim()) { showStatus('Please enter your email.', true); return false; }
+            if (state.profile.password.length < 6) { showStatus('Password must be at least 6 characters.', true); return false; }
+            return true;
+        }
+
+        function validateBodyMetricsStep() {
+            syncStateFromInputs();
+            if (!state.profile.gender.trim()) {
+                showStatus('Please select a gender.', true);
+                return false;
+            }
+            const heightCm = Number(state.profile.heightCm || 0);
+            const weightKg = Number(state.profile.weightKg || 0);
+            const targetWeightKg = Number(state.profile.targetWeightKg || 0);
+            if (state.profile.heightCm && heightCm <= 0) {
+                showStatus('Height must be a positive number.', true);
+                return false;
+            }
+            if (state.profile.weightKg && weightKg <= 0) {
+                showStatus('Weight must be a positive number.', true);
+                return false;
+            }
+            if (state.profile.targetWeightKg && targetWeightKg <= 0) {
+                showStatus('Target weight must be a positive number.', true);
+                return false;
+            }
+            return true;
+        }
+
+        function formatApiError(result) {
+            if (Array.isArray(result?.detail) && result.detail.length) {
+                const e = result.detail[0];
+                if (e?.msg) {
+                    const loc = Array.isArray(e.loc) ? e.loc.join('.') : '';
+                    return loc ? `${loc}: ${e.msg}` : e.msg;
+                }
+            }
+            return result?.message || result?.detail || 'Could not create account.';
+        }
+
+        // ─── Step navigation ──────────────────────────────────────────────────────
+        function renderStep() {
+            const step = steps.find(s => s.id === state.currentStep);
+            document.getElementById('formPanel').innerHTML = step.render();
+            document.getElementById('stepLabel').textContent = `Step ${step.id} of 4`;
+            document.getElementById('progressFill').style.width = `${(step.id / 4) * 100}%`;
+            document.querySelectorAll('.step-pill').forEach(pill =>
+                pill.classList.toggle('active', Number(pill.dataset.step) === step.id)
+            );
+            restoreInputs();
+            focusChoiceUI();
+            updatePreview();
+            window.history.replaceState({}, '', `/signup/step-${step.id}`);
+            // Attach live input listeners for preview
+            document.getElementById('formPanel').addEventListener('input', () => { syncStateFromInputs(); updatePreview(); });
+            document.getElementById('formPanel').addEventListener('change', () => { syncStateFromInputs(); updatePreview(); persistInputs(); });
+        }
+
+        function nextStep() {
+            persistInputs();
+            if (state.currentStep === 1 && !validateIdentityStep()) return;
+            if (state.currentStep === 4 && !validateBodyMetricsStep()) return;
+            if (state.currentStep < steps.length) { state.currentStep += 1; renderStep(); }
+        }
+
+        function prevStep() {
+            persistInputs();
+            if (state.currentStep > 1) { state.currentStep -= 1; renderStep(); }
+        }
+
+        // ─── Focus toggle ─────────────────────────────────────────────────────────
+        function toggleFocus(value) {
+            if (state.focus.includes(value)) {
+                state.focus = state.focus.filter(v => v !== value);
+            } else if (state.focus.length < 2) {
+                state.focus.push(value);
+            }
+            focusChoiceUI();
+            updatePreview();
+        }
+
+        function focusChoiceUI() {
+            document.querySelectorAll('.choice-card[data-value]').forEach(card => {
+                card.classList.toggle('active', state.focus.includes(card.dataset.value));
+            });
+        }
+
+        // ─── Preview updater ──────────────────────────────────────────────────────
+        function updatePreview() {
+            // Greeting
+            const name = state.profile.name.trim() || 'You';
+            document.getElementById('dashGreetingName').textContent = name;
+
+            // Progress bar
+            const pct = Math.round((state.currentStep / 4) * 100);
+            document.getElementById('dashSetupPct').textContent = `${pct}% Ready`;
+            document.getElementById('dashSetupBar').style.width = `${pct}%`;
+
+            // Focus badges
+            const badgesEl = document.getElementById('dashFocusBadges');
+            const dotsEl   = document.getElementById('dashFocusDots');
+            if (state.focus.length === 0) {
+                badgesEl.innerHTML = `
+                    <div class="flex items-center justify-between p-2 rounded-xl bg-gray-800/60 border border-gray-700/40">
+                        <span class="text-xs text-gray-500">No focus selected yet</span>
+                    </div>`;
+                dotsEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-gray-700"></span><span class="w-1.5 h-1.5 rounded-full bg-gray-700"></span>`;
+            } else {
+                const colors = ['bg-indigo-500/10 border-indigo-500/20 text-brandPurple', 'bg-neonBlue/10 border-neonBlue/20 text-neonBlue'];
+                badgesEl.innerHTML = state.focus.map((f, i) => `
+                    <div class="flex items-center justify-between p-2 rounded-xl ${colors[i] || colors[0]} border">
+                        <span class="text-xs font-bold text-white">${f}</span>
+                        <span class="text-[10px] font-mono text-pulseGreen bg-pulseGreen/10 px-1.5 py-0.5 rounded">Active</span>
+                    </div>`).join('');
+                dotsEl.innerHTML = state.focus.map(() => `<span class="w-1.5 h-1.5 rounded-full bg-pulseGreen"></span>`).join('');
+            }
+
+            // Baselines
+            const hydration  = state.profile.hydration  ? `${state.profile.hydration}L` : '—';
+            const bedtime    = state.profile.bedtime    || '—';
+            const activeDays = state.profile.activeDays || '4';
+            const height     = state.profile.heightCm ? `${state.profile.heightCm}cm` : '—';
+            const weight     = state.profile.weightKg ? `${state.profile.weightKg}kg` : '—';
+            const targetWeight = state.profile.targetWeightKg ? `${state.profile.targetWeightKg}kg` : '—';
+            document.getElementById('dashWaterText').textContent    = hydration;
+            document.getElementById('dashBedtimeText').textContent  = bedtime;
+            document.getElementById('dashActiveDaysText').textContent = `${activeDays} Days`;
+            document.getElementById('tagActiveDays').textContent    = `${activeDays} active days | target ${targetWeight}`;
+
+            // Active days progress bars
+            const container = document.getElementById('dashActiveDaysProgressContainer');
+            container.innerHTML = '';
+            const n = parseInt(activeDays, 10) || 0;
+            for (let i = 1; i <= 7; i++) {
+                const bar = document.createElement('div');
+                bar.className = `h-2 flex-grow rounded-full transition-all duration-300 ${i <= n ? 'bg-gradient-to-r from-pulseGreen to-emerald-400' : 'bg-gray-800'}`;
+                container.appendChild(bar);
+            }
+
+            // Status card
+            const identity = state.profile.name && state.profile.email && state.profile.password.length >= 6;
+            const focus    = state.focus.length > 0;
+            const baseline = state.profile.bedtime || state.profile.hydration;
+            const body     = state.profile.gender;
+
+            const badge = (ok) => ok
+                ? `<span class="text-[10px] font-mono text-pulseGreen bg-pulseGreen/10 px-1.5 py-0.5 rounded">Done</span>`
+                : `<span class="text-[10px] font-mono text-gray-600 bg-gray-800/60 px-1.5 py-0.5 rounded">Pending</span>`;
+
+            document.getElementById('statusIdentity').outerHTML = `<span id="statusIdentity">${badge(identity)}</span>`;
+            document.getElementById('statusFocus').outerHTML    = `<span id="statusFocus">${badge(focus)}</span>`;
+            document.getElementById('statusBaseline').outerHTML = `<span id="statusBaseline">${badge(baseline && body)}</span>`;
+        }
+
+        // ─── Submit ───────────────────────────────────────────────────────────────
+        async function finishFlow() {
+            persistInputs();
+            if (!validateIdentityStep()) return;
+            if (!validateBodyMetricsStep()) return;
+
+            const btn = document.getElementById('submitBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+
+            const payload = {
+                username:       (state.profile.name || 'pulse_user').trim().toLowerCase().replace(/\s+/g, '_'),
+                name:           state.profile.name   || 'Pulse User',
+                email:          state.profile.email  || '',
+                password:       state.profile.password || '',
+                timezone:       state.profile.timezone || 'UTC',
+                focus:          state.focus.length ? state.focus.join(', ') : 'General Wellness',
+                gender:         state.profile.gender || 'prefer_not_to_say',
+                height_cm:      state.profile.heightCm ? Number(state.profile.heightCm) : 170,
+                weight_kg:      state.profile.weightKg ? Number(state.profile.weightKg) : 70,
+                target_weight_kg: state.profile.targetWeightKg ? Number(state.profile.targetWeightKg) : (state.profile.weightKg ? Math.max(Number(state.profile.weightKg) - 2, 1) : 68),
+                bedtime:        state.profile.bedtime  || '22:30',
+                active_days:    Number(state.profile.activeDays || 4),
+                hydration_goal: state.profile.hydration || '2.5'
+            };
+
+            try {
+                const response = await fetch('/users/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json().catch(() => ({ message: 'Signup complete' }));
+                if (response.ok) {
+                    // Clear local storage on success
+                    storage.removeMany(Object.values(PROFILE_STORAGE_MAP));
+                    showStatus('Account created successfully! Redirecting…');
+                    setTimeout(() => { window.location.href = '/login'; }, 1800);
+                } else {
+                    showStatus(formatApiError(result), true);
+                    if (btn) { btn.disabled = false; btn.textContent = 'Complete Setup'; }
+                }
+            } catch {
+                showStatus('Could not reach the server. Please try again.', true);
+                if (btn) { btn.disabled = false; btn.textContent = 'Complete Setup'; }
+            }
+        }
+
+        // ─── Boot ─────────────────────────────────────────────────────────────────
+        const initialStep = Number(window.location.pathname.split('-').pop()) || 1;
+        state.currentStep = Math.min(Math.max(initialStep, 1), 4);
+        renderStep();
+    </script>
+</body>
+</html>
