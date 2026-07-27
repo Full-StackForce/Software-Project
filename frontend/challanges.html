@@ -83,46 +83,25 @@
 
         <div class="bg-[#151C2C] border border-gray-700 rounded-2xl p-6">
             <h3 class="text-gray-400 text-sm">Current XP</h3>
-            <p class="text-3xl font-bold text-green-400 mt-2">540 XP</p>
+            <p id="statCurrentXp" class="text-3xl font-bold text-green-400 mt-2">0 XP</p>
         </div>
 
         <div class="bg-[#151C2C] border border-gray-700 rounded-2xl p-6">
             <h3 class="text-gray-400 text-sm">Completed</h3>
-            <p class="text-3xl font-bold text-blue-400 mt-2">18</p>
+            <p id="statCompleted" class="text-3xl font-bold text-blue-400 mt-2">0</p>
         </div>
 
         <div class="bg-[#151C2C] border border-gray-700 rounded-2xl p-6">
             <h3 class="text-gray-400 text-sm">Active Challenges</h3>
-            <p class="text-3xl font-bold text-yellow-400 mt-2">3</p>
+            <p id="statActive" class="text-3xl font-bold text-yellow-400 mt-2">0</p>
         </div>
 
     </div>
 
     <!-- Featured Challenge -->
 
-    <div class="bg-gradient-to-r from-indigo-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-xl">
-
-        <h2 class="text-2xl font-bold text-white mb-3">
-            Weekly Challenge
-        </h2>
-
-        <p class="text-gray-200 mb-5">
-            Walk 50,000 steps before Sunday.
-        </p>
-
-        <div class="w-full bg-gray-700 rounded-full h-4">
-            <div class="bg-green-400 h-4 rounded-full" style="width:67%"></div>
-        </div>
-
-        <p class="mt-3 text-white">
-            67% Complete
-        </p>
-
-        <button
-            class="mt-6 bg-green-500 hover:bg-green-600 px-6 py-3 rounded-xl font-semibold transition">
-            Continue Challenge
-        </button>
-
+    <div id="weeklyChallengeContainer" class="bg-gradient-to-r from-indigo-700 to-purple-700 rounded-3xl p-8 mb-10 shadow-xl">
+        <!-- Injected by JS -->
     </div>
 
     <!-- Daily Challenges -->
@@ -291,14 +270,83 @@
 				if (!response.ok) throw new Error(`Failed to complete challenge: ${response.status}`);
 
 				await loadChallenges();
+				await loadStats();
 			} catch (error) {
 				console.error('Failed to complete challenge:', error);
 				alert('Something went wrong completing this challenge.');
 			}
 		}
 
+		async function loadStats() {
+			try {
+				const response = await fetch(`${API_BASE}/challenges/stats/${currentUserId}`);
+				if (!response.ok) throw new Error(`Failed to fetch stats: ${response.status}`);
+
+				const stats = await response.json();
+				document.getElementById('statCurrentXp').textContent = `${stats.current_xp} XP`;
+				document.getElementById('statCompleted').textContent = stats.completed_count;
+				document.getElementById('statActive').textContent = stats.active_challenges;
+			} catch (error) {
+				console.error('Failed to load stats:', error);
+			}
+		}
+
+		async function loadWeeklyChallenge() {
+			const container = document.getElementById('weeklyChallengeContainer');
+
+			try {
+				const response = await fetch(`${API_BASE}/challenges/weekly/${currentUserId}`);
+				if (!response.ok) throw new Error(`Failed to fetch weekly challenge: ${response.status}`);
+
+				const weeklyChallenges = await response.json();
+				if (weeklyChallenges.length === 0) {
+					container.innerHTML = `<p class="text-white">No weekly challenge available.</p>`;
+					return;
+				}
+
+				const wc = weeklyChallenges[0];
+				container.innerHTML = `
+					<h2 class="text-2xl font-bold text-white mb-3">${wc.title}</h2>
+					<p class="text-gray-200 mb-5">${wc.description || ''}</p>
+					<div class="w-full bg-gray-700 rounded-full h-4">
+						<div class="bg-green-400 h-4 rounded-full" style="width:${wc.percent_complete}%"></div>
+					</div>
+					<p class="mt-3 text-white">${wc.percent_complete}% Complete (${wc.current_value} / ${wc.target_value} ${wc.unit || ''})</p>
+					<button id="continueWeeklyBtn" data-challenge-id="${wc.challenge_id}"
+						class="mt-6 bg-green-500 hover:bg-green-600 px-6 py-3 rounded-xl font-semibold transition">
+						Continue Challenge
+					</button>
+				`;
+
+				document.getElementById('continueWeeklyBtn').addEventListener('click', () => updateWeeklyProgress(wc.challenge_id));
+			} catch (error) {
+				console.error('Failed to load weekly challenge:', error);
+				container.innerHTML = `<p class="text-white">Failed to load weekly challenge.</p>`;
+			}
+		}
+
+		async function updateWeeklyProgress(challengeId) {
+			const increment = prompt('How many steps would you like to add?', '1000');
+			if (!increment || isNaN(Number(increment))) return;
+
+			try {
+				const response = await fetch(
+					`${API_BASE}/challenges/weekly/${challengeId}/progress/${currentUserId}?increment=${Number(increment)}`,
+					{ method: 'POST' }
+				);
+				if (!response.ok) throw new Error(`Failed to update progress: ${response.status}`);
+
+				await loadWeeklyChallenge();
+			} catch (error) {
+				console.error('Failed to update weekly progress:', error);
+				alert('Something went wrong updating your progress.');
+			}
+		}
+
 		loadActiveUserName();
 		loadChallenges();
+		loadStats();
+		loadWeeklyChallenge();
 	</script>
 </body>
 </html>
