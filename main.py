@@ -9,6 +9,7 @@ from routers import goal as goalRoute
 from routers import auth
 from routers import user as userRoute
 from routers import workout as workoutRoute
+from routers import challenge as challengeRoute
 from routers import habit as habitRoute
 from routers import dashboard as dashboardRoute
 from routers import weight_log as weightLogRoute
@@ -35,6 +36,7 @@ app.include_router(workoutRoute.router, tags=["workouts"])
 app.include_router(habitRoute.router, tags=["habits"])
 app.include_router(dashboardRoute.router, tags=["dashboard"])
 app.include_router(weightLogRoute.router, tags=["weight-logs"])
+app.include_router(challengeRoute.router, tags=["challenges"])
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
 
