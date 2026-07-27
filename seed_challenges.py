@@ -62,3 +62,14 @@ try:
     print("Seeding complete.")
 finally:
     db.close()
+
+    {
+        "title": "Walk 50,000 Steps",
+        "description": "Walk 50,000 steps before Sunday.",
+        "category": "steps",
+        "icon": "🚶",
+        "xp_reward": 50,
+        "target_value": 50000,
+        "unit": "steps",
+        "challenge_type": "weekly",
+    },
