@@ -1,6 +1,7 @@
 from dependencies.database import SessionLocal, engine, Base
 from models.challenge import Challenge
 from models.challenge_completion import ChallengeCompletion  # noqa: F401 (ensures table registers)
+from models.challenge_progress import ChallengeProgress  # noqa: F401 (ensures table registers)
 
 Base.metadata.create_all(bind=engine)
 
@@ -47,6 +48,16 @@ seed_data = [
         "unit": "steps",
         "challenge_type": "daily",
     },
+    {
+        "title": "Walk 50,000 Steps",
+        "description": "Walk 50,000 steps before Sunday.",
+        "category": "steps",
+        "icon": "🚶",
+        "xp_reward": 50,
+        "target_value": 50000,
+        "unit": "steps",
+        "challenge_type": "weekly",
+    },
 ]
 
 try:
@@ -62,14 +73,3 @@ try:
     print("Seeding complete.")
 finally:
     db.close()
-
-    {
-        "title": "Walk 50,000 Steps",
-        "description": "Walk 50,000 steps before Sunday.",
-        "category": "steps",
-        "icon": "🚶",
-        "xp_reward": 50,
-        "target_value": 50000,
-        "unit": "steps",
-        "challenge_type": "weekly",
-    },
