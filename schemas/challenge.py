@@ -32,3 +32,18 @@ class ChallengeCompleteResponse(BaseModel):
     completion_date: date_type
     current_streak: int
     xp_awarded: int
+
+class ChallengeStatsResponse(BaseModel):
+    current_xp: int
+    completed_count: int
+    active_challenges: int
+
+
+class WeeklyChallengeResponse(BaseModel):
+    challenge_id: int
+    title: str
+    description: Optional[str] = None
+    target_value: float
+    current_value: float
+    percent_complete: float
+    unit: Optional[str] = None
