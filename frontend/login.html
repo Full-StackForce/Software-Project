@@ -1,86 +1,696 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsePoint Login</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
     <style>
+        :root {
+            --background: #090a10;
+            --panel: rgba(19, 21, 32, 0.92);
+            --panel-border: #202434;
+            --input-background: #0d1529;
+            --input-border: #2a344e;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --indigo: #6366f1;
+            --blue: #3b82f6;
+            --green: #10b981;
+            --red: #f87171;
+        }
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: Arial;
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            color: var(--text-main);
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ambient-glow {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(140px);
+        }
+        .ambient-glow-left {
+            width: 500px;
+            height: 500px;
+            top: -180px;
+            left: -150px;
+            background: rgba(99, 102, 241, 0.18);
+        }
+        .ambient-glow-right {
+            width: 550px;
+            height: 550px;
+            right: -180px;
+            bottom: -220px;
+            background: rgba(59, 130, 246, 0.15);
+        }
+        .login-container {
+            width: 100%;
+            max-width: 430px;
+            position: relative;
+            z-index: 2;
+        }
+        .brand-area {
             text-align: center;
-            margin-top: 100px;
+            margin-bottom: 28px;
         }
-
+        .brand-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 14px;
+            border-radius: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--indigo), var(--blue));
+            box-shadow: 0 16px 35px rgba(99, 102, 241, 0.3);
+        }
+        .brand-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+        .brand-name {
+            margin: 0;
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            background: linear-gradient(
+                to right,
+                #60a5fa,
+                #a5b4fc,
+                var(--indigo)
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .brand-subtitle {
+            margin: 8px 0 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .login-card {
+            padding: 32px;
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            background: var(--panel);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+        }
+        .login-card h2 {
+            margin: 0;
+            font-size: 23px;
+            font-weight: 800;
+        }
+        .login-description {
+            margin: 8px 0 25px;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .input-wrapper svg {
+            position: absolute;
+            top: 50%;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            color: #6b7280;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
         input {
-            margin: 5px;
-            padding: 8px;
+            width: 100%;
+            padding: 13px 15px 13px 44px;
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            background: var(--input-background);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
         }
-
-        button {
-            padding: 8px 15px;
-            background-color: blue;
-            color: white;
+        input::placeholder {
+            color: #596174;
+        }
+        input:focus {
+            border-color: rgba(99, 102, 241, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.13);
+        }
+        .password-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: -7px;
+            margin-bottom: 20px;
+        }
+        .text-button {
+            padding: 0;
             border: none;
+            background: none;
+            color: #818cf8;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
+        }
+        .text-button:hover {
+            color: #a5b4fc;
+            text-decoration: underline;
+        }
+        .login-button {
+            width: 100%;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(
+                to right,
+                var(--indigo),
+                var(--blue)
+            );
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            box-shadow: 0 12px 25px rgba(99, 102, 241, 0.23);
+            transition:
+                transform 0.2s ease,
+                opacity 0.2s ease;
+        }
+        .login-button:hover {
+            transform: translateY(-1px);
+            opacity: 0.93;
+        }
+        .login-button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .message {
+            min-height: 20px;
+            margin: 18px 0 0;
+            text-align: center;
+            font-size: 13px;
+        }
+        .message.success {
+            color: var(--green);
+        }
+        .message.error {
+            color: var(--red);
+        }
+        .footer-text {
+            margin-top: 22px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 11px;
+        }
+        /* Forgot-password modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            padding: 24px;
+            background: rgba(3, 5, 10, 0.78);
+            backdrop-filter: blur(7px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.visible {
+            display: flex;
+        }
+        .modal-card {
+            width: 100%;
+            max-width: 410px;
+            padding: 28px;
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            background: #131520;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+        }
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 19px;
+        }
+        .modal-header p {
+            margin: 7px 0 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .close-button {
+            padding: 2px;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            font-size: 25px;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            color: white;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+        }
+        .secondary-button,
+        .recovery-button {
+            flex: 1;
+            padding: 11px;
+            border-radius: 11px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .secondary-button {
+            border: 1px solid #374151;
+            background: transparent;
+            color: #d1d5db;
+        }
+        .recovery-button {
+            border: none;
+            background: linear-gradient(
+                to right,
+                var(--indigo),
+                var(--blue)
+            );
+            color: #ffffff;
+        }
+        @media (max-width: 500px) {
+            .login-card {
+                padding: 25px 20px;
+            }
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
         }
     </style>
 </head>
-
 <body>
-    <h2>Login Page</h2>
-
-    <input type="email" id="email" placeholder="Email" />
-    <br>
-    <input type="password" id="password" placeholder="Password" />
-    <br><br>
-
-    <button onclick="login()">Login</button>
-
-    <p id="message"></p>
-
+    <div class="ambient-glow ambient-glow-left"></div>
+    <div class="ambient-glow ambient-glow-right"></div>
+    <main class="login-container">
+        <div class="brand-area">
+            <div class="brand-icon">
+                <svg
+                    fill="none"
+                    stroke="white"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2.3"
+                        d="M3 12h4l2-6 4 12 2-6h6"
+                    ></path>
+                </svg>
+            </div>
+            
+            <h1 class="brand-name">PULSEPOINT</h1>
+            <p class="brand-subtitle">
+                Personal Performance and Wellness Hub
+            </p>
+        </div>
+        <section class="login-card">
+            <h2>Welcome back</h2>
+            <p class="login-description">
+                Sign in to access your workouts, habits, goals, and progress.
+            </p>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <div class="input-wrapper">
+                        <svg
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            ></path>
+                        </svg>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="name@example.com"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <svg
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 11c1.105 0 2 .895 2 2s-.895 2-2 2-2-.895-2-2 .895-2 2-2zm6-2V7a6 6 0 10-12 0v2m-1 0h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2z"
+                            ></path>
+                        </svg>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+                </div>
+                <div class="password-actions">
+                    <button
+                        type="button"
+                        class="text-button"
+                        onclick="openRecoveryModal()"
+                    >
+                        Forgot password?
+                    </button>
+                </div>
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="login-button"
+                >
+                    Sign in
+                </button>
+                <p id="message" class="message" role="status"></p>
+            </form>
+        </section>
+        <p class="footer-text">
+            © 2026 PulsePoint. Your personal wellness data, all in one place.
+        </p>
+    </main>
+    <!-- Forgot-password modal -->
+    <div
+        id="recoveryModal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="recoveryTitle"
+    >
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h3 id="recoveryTitle">Recover your account</h3>
+                    <p>
+                        Enter your account email and we will send you password
+                        reset instructions.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    class="close-button"
+                    onclick="closeRecoveryModal()"
+                    aria-label="Close password recovery"
+                >
+                    &times;
+                </button>
+            </div>
+            <form id="recoveryForm">
+                <div class="form-group">
+                    <label for="recoveryEmail">Email address</label>
+                    <div class="input-wrapper">
+                        <svg
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 8l9 6 9-6M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            ></path>
+                        </svg>
+                        <input
+                            type="email"
+                            id="recoveryEmail"
+                            placeholder="name@example.com"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+                </div>
+                <p
+                    id="recoveryMessage"
+                    class="message"
+                    role="status"
+                ></p>
+                <div class="modal-actions">
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="closeRecoveryModal()"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        id="recoveryButton"
+                        class="recovery-button"
+                    >
+                        Send reset link
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
-const STORAGE_KEYS = {
-    userId: 'userId',
-    userName: 'userName',
-    userEmail: 'userEmail',
-    userStreak: 'userStreak'
-};
-
-async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    try {
-        const response = await fetch("http://127.0.0.1:8000/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        console.log("FULL RESPONSE:", data);
-
-        if (response.ok) {
-            document.getElementById("message").innerText = data.message;
-            // Store user session
-            localStorage.setItem(STORAGE_KEYS.userId, data.user_id);
-            localStorage.setItem(STORAGE_KEYS.userName, data.name);
-            localStorage.setItem(STORAGE_KEYS.userEmail, data.email);
-            localStorage.setItem(STORAGE_KEYS.userStreak, data.current_streak ?? 0);
-            // Redirect to home after 1 second
-            setTimeout(() => {
-                window.location.href = "http://127.0.0.1:8000/home";
-            }, 1000);
-        } else {
-            document.getElementById("message").innerText = data.detail;
+        const STORAGE_KEYS = {
+            userId: "userId",
+            userName: "userName",
+            userEmail: "userEmail",
+            userStreak: "userStreak"
+        };
+        const loginForm = document.getElementById("loginForm");
+        const recoveryForm = document.getElementById("recoveryForm");
+        loginForm.addEventListener("submit", login);
+        recoveryForm.addEventListener("submit", requestPasswordReset);
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const message = document.getElementById("message");
+            const loginButton = document.getElementById("loginButton");
+            setMessage(message, "", "");
+            if (!email || !password) {
+                setMessage(
+                    message,
+                    "Please enter your email and password.",
+                    "error"
+                );
+                return;
+            }
+            loginButton.disabled = true;
+            loginButton.textContent = "Signing in...";
+            try {
+                const response = await fetch("/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                });
+                const data = await response.json();
+                console.log("Login status:", response.status);
+                console.log("Login response:", data);
+                if (response.ok) {
+                    localStorage.setItem(
+                        STORAGE_KEYS.userId,
+                        data.user_id
+                    );
+                    localStorage.setItem(
+                        STORAGE_KEYS.userName,
+                        data.name ?? ""
+                    );
+                    localStorage.setItem(
+                        STORAGE_KEYS.userEmail,
+                        data.email ?? email
+                    );
+                    localStorage.setItem(
+                        STORAGE_KEYS.userStreak,
+                        data.current_streak ?? 0
+                    );
+                    setMessage(
+                        message,
+                        data.message || "Login successful. Redirecting...",
+                        "success"
+                    );
+                    setTimeout(() => {
+                        window.location.href = "/home";
+                    }, 700);
+                } else {
+                    const errorText =
+                        typeof data.detail === "string"
+                            ? data.detail
+                            : JSON.stringify(data.detail);
+                    setMessage(
+                        message,
+                        errorText || "Incorrect email or password.",
+                        "error"
+                    );
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                setMessage(
+                    message,
+                    "Unable to connect to the server.",
+                    "error"
+                );
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = "Sign in";
+            }
         }
-
-    } catch (error) {
-        console.error("ERROR:", error);
-        document.getElementById("message").innerText = "Request failed";
-    }
-}
-</script>
+        function openRecoveryModal() {
+            const modal = document.getElementById("recoveryModal");
+            const loginEmail = document.getElementById("email").value.trim();
+            const recoveryEmail =
+                document.getElementById("recoveryEmail");
+            document.getElementById("recoveryMessage").textContent = "";
+            if (loginEmail) {
+                recoveryEmail.value = loginEmail;
+            }
+            modal.classList.add("visible");
+            setTimeout(() => {
+                recoveryEmail.focus();
+            }, 50);
+        }
+        function closeRecoveryModal() {
+            document
+                .getElementById("recoveryModal")
+                .classList.remove("visible");
+        }
+        async function requestPasswordReset(event) {
+            event.preventDefault();
+            const email =
+                document.getElementById("recoveryEmail").value.trim();
+            const message =
+                document.getElementById("recoveryMessage");
+            const recoveryButton =
+                document.getElementById("recoveryButton");
+            if (!email) {
+                setMessage(
+                    message,
+                    "Please enter your email address.",
+                    "error"
+                );
+                return;
+            }
+            recoveryButton.disabled = true;
+            recoveryButton.textContent = "Sending...";
+            try {
+                const response = await fetch("/auth/forgot-password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setMessage(
+                        message,
+                        data.message ||
+                            "Password reset instructions were sent.",
+                        "success"
+                    );
+                } else {
+                    setMessage(
+                        message,
+                        data.detail ||
+                            "We could not process the reset request.",
+                        "error"
+                    );
+                }
+            } catch (error) {
+                console.error("Password recovery error:", error);
+                setMessage(
+                    message,
+                    "Password recovery is not available yet.",
+                    "error"
+                );
+            } finally {
+                recoveryButton.disabled = false;
+                recoveryButton.textContent = "Send reset link";
+            }
+        }
+        function setMessage(element, text, type) {
+            element.textContent = text;
+            element.className = "message";
+            if (type) {
+                element.classList.add(type);
+            }
+        }
+        document
+            .getElementById("recoveryModal")
+            .addEventListener("click", function (event) {
+                if (event.target === this) {
+                    closeRecoveryModal();
+                }
+            });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeRecoveryModal();
+            }
+        });
+    </script>
 </body>
 </html>
