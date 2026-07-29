@@ -497,7 +497,31 @@
             syncStateFromInputs();
             if (!state.profile.name.trim()) { showStatus('Please enter your name.', true); return false; }
             if (!state.profile.email.trim()) { showStatus('Please enter your email.', true); return false; }
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(state.profile.email.trim())) { showStatus('Please enter a valid email address.', true); return false; }
             if (state.profile.password.length < 6) { showStatus('Password must be at least 6 characters.', true); return false; }
+            return true;
+        }
+
+        function validateBaselineStep() {
+            syncStateFromInputs();
+
+            if (state.profile.hydration) {
+                const hydration = Number(state.profile.hydration);
+                if (!Number.isFinite(hydration) || hydration <= 0) {
+                    showStatus('Hydration goal must be a number greater than 0.', true);
+                    return false;
+                }
+            }
+
+            if (state.profile.activeDays) {
+                const activeDays = Number(state.profile.activeDays);
+                if (!Number.isInteger(activeDays) || activeDays < 1 || activeDays > 7) {
+                    showStatus('Active days must be between 1 and 7.', true);
+                    return false;
+                }
+            }
+
             return true;
         }
 
@@ -527,13 +551,41 @@
 
         function formatApiError(result) {
             if (Array.isArray(result?.detail) && result.detail.length) {
-                const e = result.detail[0];
-                if (e?.msg) {
-                    const loc = Array.isArray(e.loc) ? e.loc.join('.') : '';
-                    return loc ? `${loc}: ${e.msg}` : e.msg;
+                const friendlyNames = {
+                    username: 'Username',
+                    name: 'Full name',
+                    email: 'Email',
+                    password: 'Password',
+                    timezone: 'Time zone',
+                    focus: 'Focus',
+                    gender: 'Gender',
+                    height_cm: 'Height',
+                    weight_kg: 'Weight',
+                    target_weight_kg: 'Target weight',
+                    bedtime: 'Bedtime',
+                    active_days: 'Active days',
+                    hydration_goal: 'Hydration goal'
+                };
+
+                const messages = result.detail
+                    .map((errorItem) => {
+                        const locParts = Array.isArray(errorItem?.loc) ? errorItem.loc : [];
+                        const fieldKey = locParts[locParts.length - 1];
+                        const label = friendlyNames[fieldKey] || (typeof fieldKey === 'string' ? fieldKey : 'Field');
+                        return errorItem?.msg ? `${label}: ${errorItem.msg}` : null;
+                    })
+                    .filter(Boolean);
+
+                if (messages.length > 0) {
+                    return messages.join(' ');
                 }
             }
-            return result?.message || result?.detail || 'Could not create account.';
+
+            if (typeof result?.detail === 'string' && result.detail.trim()) {
+                return result.detail;
+            }
+
+            return result?.message || 'Could not create account.';
         }
 
         // ─── Step navigation ──────────────────────────────────────────────────────
@@ -557,6 +609,7 @@
         function nextStep() {
             persistInputs();
             if (state.currentStep === 1 && !validateIdentityStep()) return;
+            if (state.currentStep === 3 && !validateBaselineStep()) return;
             if (state.currentStep === 4 && !validateBodyMetricsStep()) return;
             if (state.currentStep < steps.length) { state.currentStep += 1; renderStep(); }
         }
@@ -654,6 +707,7 @@
         async function finishFlow() {
             persistInputs();
             if (!validateIdentityStep()) return;
+            if (!validateBaselineStep()) return;
             if (!validateBodyMetricsStep()) return;
 
             const btn = document.getElementById('submitBtn');

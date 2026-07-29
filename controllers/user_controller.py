@@ -50,6 +50,7 @@ def create_user(payload: UserCreate) -> User:
         # Seed the first weight log so trend analysis has an initial baseline.
         db.add(WeightLog(user_id=db_user.id, log_date=date.today(), weight_kg=weight_kg))
         db.commit()
+        db.refresh(db_user)
 
         return db_user
     finally:

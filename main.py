@@ -2,6 +2,7 @@ from pathlib import Path
 import uvicorn
 from fastapi import FastAPI
 from sqlalchemy import inspect, text
+from sqlalchemy.exc import SQLAlchemyError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -63,9 +64,17 @@ def ensure_user_profile_columns() -> None:
                 connection.execute(text(statement))
 
 
-load_models()
-Base.metadata.create_all(bind=engine)
-ensure_user_profile_columns()
+def initialize_database_schema() -> None:
+    load_models()
+    try:
+        Base.metadata.create_all(bind=engine)
+        ensure_user_profile_columns()
+    except SQLAlchemyError as exc:
+        # Keep the app bootable when DB is temporarily unavailable.
+        print(f"Warning: database initialization skipped: {exc}")
+
+
+initialize_database_schema()
 
 @app.get("/login")
 def login_page():

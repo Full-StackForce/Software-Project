@@ -234,6 +234,21 @@
         .message.error {
             color: var(--red);
         }
+        .signup-prompt {
+            margin: 14px 0 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .signup-link {
+            color: #a5b4fc;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .signup-link:hover {
+            color: #c7d2fe;
+            text-decoration: underline;
+        }
         .footer-text {
             margin-top: 22px;
             text-align: center;
@@ -427,6 +442,10 @@
                 >
                     Sign in
                 </button>
+                <p class="signup-prompt">
+                    Don't have an account?
+                    <a href="/accounts" class="signup-link">Create an Account</a>
+                </p>
                 <p id="message" class="message" role="status"></p>
             </form>
         </section>
