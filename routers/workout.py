@@ -17,6 +17,11 @@ def get_workouts():
     return list_workouts()
 
 
+@router.get("/user/{user_id}", response_model=List[WorkoutResponse])
+def get_user_workouts(user_id: int):
+    return list_workouts_by_user(user_id)
+
+
 @router.get("/{workout_id}", response_model=WorkoutResponse)
 def get_workout_route(workout_id: int):
     workout = get_workout(workout_id)
@@ -31,11 +36,6 @@ def update_workout_route(workout_id: int, payload: WorkoutUpdate):
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
     return workout
-
-
-@router.get("/user/{user_id}", response_model=List[WorkoutResponse])
-def get_user_workouts(user_id: int):
-    return list_workouts_by_user(user_id)
 
 
 @router.delete("/{workout_id}")

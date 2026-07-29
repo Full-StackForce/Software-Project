@@ -2,61 +2,97 @@ from datetime import datetime
 from typing import List
 
 from controllers.habit_controller import sync_system_habit_progress
+from dependencies.database import SessionLocal
 from models.workout import Workout
 from schemas.workout import WorkoutCreate, WorkoutUpdate
 
-_workouts: List[Workout] = []
-_next_workout_id = 1
-
-
 def create_workout(payload: WorkoutCreate) -> Workout:
-    global _next_workout_id
-    now = datetime.utcnow()
-    workout = Workout(
-        id=_next_workout_id,
-        user_id=payload.user_id,
-        type=payload.type,
-        date=now,
-        start_time=now.time().replace(microsecond=0),
-        duration_minutes=payload.duration_minutes,
-        calories_burned=payload.calories_burned if payload.calories_burned is not None else 0,
-        notes=payload.notes,
-        mood=None,
-        completed_at=now,
-        mood_level=payload.mood_level,
-    )
-    _workouts.append(workout)
-    _next_workout_id += 1
-    sync_system_habit_progress(payload.user_id, "workout", len(list_workouts_by_user(payload.user_id)), completed_today=True)
-    return workout
+    db = SessionLocal()
+    try:
+        now = datetime.utcnow()
+        workout = Workout(
+            user_id=payload.user_id,
+            type=payload.type,
+            date=now,
+            start_time=now.time().replace(microsecond=0),
+            duration_minutes=payload.duration_minutes,
+            calories_burned=payload.calories_burned if payload.calories_burned is not None else 0,
+            notes=payload.notes,
+            mood=None,
+            completed_at=now,
+            mood_level=payload.mood_level,
+        )
+        db.add(workout)
+        db.commit()
+        db.refresh(workout)
+
+        user_workout_count = db.query(Workout).filter(Workout.user_id == payload.user_id).count()
+        sync_system_habit_progress(payload.user_id, "workout", user_workout_count, completed_today=True)
+        return workout
+    finally:
+        db.close()
 
 
 def list_workouts() -> List[Workout]:
-    return list(_workouts)
+    db = SessionLocal()
+    try:
+        return db.query(Workout).order_by(Workout.completed_at.desc()).all()
+    finally:
+        db.close()
 
 
 def list_workouts_by_user(user_id: int) -> List[Workout]:
-    return [w for w in _workouts if w.user_id == user_id]
+    db = SessionLocal()
+    try:
+        return (
+            db.query(Workout)
+            .filter(Workout.user_id == user_id)
+            .order_by(Workout.completed_at.desc())
+            .all()
+        )
+    finally:
+        db.close()
 
 
 def get_workout(workout_id: int) -> Workout | None:
-    return next((workout for workout in _workouts if workout.id == workout_id), None)
+    db = SessionLocal()
+    try:
+        return db.query(Workout).filter(Workout.id == workout_id).first()
+    finally:
+        db.close()
 
 
 def update_workout(workout_id: int, payload: WorkoutUpdate) -> Workout | None:
-    workout = get_workout(workout_id)
-    if not workout:
-        return None
+    db = SessionLocal()
+    try:
+        workout = db.query(Workout).filter(Workout.id == workout_id).first()
+        if not workout:
+            return None
 
-    updates = payload.model_dump(exclude_unset=True)
-    for field_name, value in updates.items():
-        setattr(workout, field_name, value)
-    return workout
+        updates = payload.model_dump(exclude_unset=True)
+        for field_name, value in updates.items():
+            setattr(workout, field_name, value)
+
+        db.commit()
+        db.refresh(workout)
+        return workout
+    finally:
+        db.close()
 
 
 def delete_workout(workout_id: int) -> bool:
-    for index, workout in enumerate(_workouts):
-        if workout.id == workout_id:
-            del _workouts[index]
-            return True
-    return False
+    db = SessionLocal()
+    try:
+        workout = db.query(Workout).filter(Workout.id == workout_id).first()
+        if not workout:
+            return False
+
+        user_id = workout.user_id
+        db.delete(workout)
+        db.commit()
+
+        user_workout_count = db.query(Workout).filter(Workout.user_id == user_id).count()
+        sync_system_habit_progress(user_id, "workout", user_workout_count, completed_today=(user_workout_count > 0))
+        return True
+    finally:
+        db.close()
