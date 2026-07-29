@@ -3,3 +3,4 @@ def load_models() -> None:
     import models.login_activity  # noqa: F401
     import models.user  # noqa: F401
     import models.weight_log  # noqa: F401
+    import models.workout  # noqa: F401
