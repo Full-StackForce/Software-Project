@@ -11,14 +11,18 @@ _next_workout_id = 1
 
 def create_workout(payload: WorkoutCreate) -> Workout:
     global _next_workout_id
+    now = datetime.utcnow()
     workout = Workout(
         id=_next_workout_id,
         user_id=payload.user_id,
         type=payload.type,
+        date=now,
+        start_time=now.time().replace(microsecond=0),
         duration_minutes=payload.duration_minutes,
         calories_burned=payload.calories_burned if payload.calories_burned is not None else 0,
         notes=payload.notes,
-        completed_at=datetime.utcnow(),
+        mood=None,
+        completed_at=now,
         mood_level=payload.mood_level,
     )
     _workouts.append(workout)
