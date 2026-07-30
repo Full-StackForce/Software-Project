@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.orm import Session
 
+from controllers.habit_controller import reset_daily_habits_for_new_day
 from dependencies.database import SessionLocal
 from models.login_activity import LoginActivity
 from models.user import User
@@ -11,7 +12,7 @@ from schemas.auth import CurrentUserResponse, LoginRequest, LoginResponse
 router = APIRouter()
 
 
-def _record_login_for_today(db: Session, user_id: int) -> None:
+def _record_login_for_today(db: Session, user_id: int) -> bool:
     today = date.today()
     existing = (
         db.query(LoginActivity)
@@ -19,10 +20,11 @@ def _record_login_for_today(db: Session, user_id: int) -> None:
         .first()
     )
     if existing:
-        return
+        return False
 
     db.add(LoginActivity(user_id=user_id, login_date=today))
     db.commit()
+    return True
 
 
 def _calculate_login_streak(db: Session, user_id: int) -> int:
@@ -69,7 +71,9 @@ def login(credentials: LoginRequest):
                 detail="Invalid email or password"
             )
         
-        _record_login_for_today(db, user.id)
+        is_first_login_today = _record_login_for_today(db, user.id)
+        if is_first_login_today:
+            reset_daily_habits_for_new_day(user.id)
         current_streak = _calculate_login_streak(db, user.id)
 
         display_name = user.name or user.username
