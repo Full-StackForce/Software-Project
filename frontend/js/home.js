@@ -83,6 +83,49 @@
             return state.habits.find(habit => habit.slug === slug) || null;
         }
 
+        function findSleepHabit() {
+            return state.habits.find(isSleepHabitData) || null;
+        }
+
+        function isSleepHabitData(habit) {
+            const slug = (habit.slug || '').toLowerCase().trim();
+            const name = (habit.name || '').toLowerCase().trim();
+            const category = (habit.category || '').toLowerCase().trim();
+            const targetValue = Number(habit.target_value ?? habit.targetValue ?? 0);
+
+            if (slug.includes('sleep') || name.includes('sleep')) {
+                return true;
+            }
+
+            return category === 'recovery' && targetValue >= 5 && targetValue <= 12;
+        }
+
+        function normalizeSleepDurationValue(value) {
+            const numericValue = Number(value || 0);
+            return numericValue > 24 ? Number((numericValue / 60).toFixed(1)) : Number(value || 0);
+        }
+
+        function normalizeHabitFromApi(habit) {
+            const unit = (habit.unit || '').toLowerCase().trim();
+            const hasMinuteUnit = ['minute', 'minutes', 'min', 'mins'].includes(unit);
+            const sleepLikeHabit = isSleepHabitData(habit);
+            const normalizeAsSleepDuration = sleepLikeHabit || hasMinuteUnit;
+
+            return {
+                id: habit.id,
+                name: habit.name,
+                slug: habit.slug,
+                type: normalizeAsSleepDuration ? 'duration' : habit.track_method,
+                value: normalizeAsSleepDuration ? normalizeSleepDurationValue(habit.current_value) : habit.current_value,
+                targetValue: normalizeAsSleepDuration ? normalizeSleepDurationValue(habit.target_value) : habit.target_value,
+                unit: normalizeAsSleepDuration ? 'hours' : habit.unit,
+                category: habit.category,
+                streak_count: habit.streak_count,
+                completed_today: habit.completed_today,
+                user_id: habit.user_id
+            };
+        }
+
         function syncCoreMetricsFromHabits() {
             const hydrationHabit = findHabitBySlug('hydration');
             if (hydrationHabit) {
@@ -90,7 +133,7 @@
                 state.waterTarget = hydrationHabit.targetValue;
             }
 
-            const sleepHabit = findHabitBySlug('sleep');
+            const sleepHabit = findSleepHabit();
             if (sleepHabit) {
                 state.sleepHours = sleepHabit.value;
                 state.sleepTarget = sleepHabit.targetValue;
@@ -190,19 +233,7 @@
                 const response = await fetch(`${API_BASE}/habits/user/${currentUserId}`);
                 if (response.ok) {
                     const apiHabits = await response.json();
-                    state.habits = apiHabits.map(h => ({
-                        id: h.id,
-                        name: h.name,
-                        slug: h.slug,
-                        type: h.track_method,
-                        value: h.current_value,
-                        targetValue: h.target_value,
-                        unit: h.unit,
-                        category: h.category,
-                        streak_count: h.streak_count,
-                        completed_today: h.completed_today,
-                        user_id: h.user_id
-                    }));
+                    state.habits = apiHabits.map(normalizeHabitFromApi);
                     syncCoreMetricsFromHabits();
                     renderHydrationState();
                     renderSleepState();
@@ -344,6 +375,91 @@
         const chartArea = document.getElementById('chartArea');
         const chartLine = document.getElementById('chartLine');
         const liveChartIndicator = document.getElementById('liveChartIndicator');
+        const chartProjectionLine = document.getElementById('chartProjectionLine');
+        const chartProjectedLabel = document.getElementById('chartProjectedLabel');
+        const chartActualPoints = document.getElementById('chartActualPoints');
+
+        function formatDurationValue(value, isHourBased) {
+            if (isHourBased) {
+                return Number(value || 0).toFixed(1);
+            }
+            return `${Math.round(Number(value || 0))}`;
+        }
+
+        function toChartX(minutesIntoDay) {
+            return Math.max(0, Math.min(500, (minutesIntoDay / 1440) * 500));
+        }
+
+        function toChartY(minutes, maxMinutes) {
+            const top = 15;
+            const bottom = 140;
+            const safeMax = Math.max(maxMinutes, 1);
+            const ratio = Math.max(0, Math.min(1, minutes / safeMax));
+            return bottom - ratio * (bottom - top);
+        }
+
+        function renderActivityTimelineChart() {
+            const todaysWorkouts = state.workouts
+                .filter(workout => {
+                    const timestamp = new Date(workout.completed_at);
+                    return timestamp.toDateString() === new Date().toDateString();
+                })
+                .sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at));
+
+            if (todaysWorkouts.length === 0) {
+                chartArea.setAttribute('d', 'M0,150 L500,150 L500,150 Z');
+                chartLine.setAttribute('d', '');
+                chartProjectionLine.setAttribute('d', '');
+                chartActualPoints.innerHTML = '';
+                liveChartIndicator.style.display = 'none';
+                chartProjectedLabel.textContent = 'Projected EOD: 0 min';
+                peakActiveDisplay.textContent = 'No workouts logged today';
+                return;
+            }
+
+            let cumulativeMinutes = 0;
+            const points = todaysWorkouts.map(workout => {
+                cumulativeMinutes += Number(workout.duration_minutes || 0);
+                const timestamp = new Date(workout.completed_at);
+                const minutesIntoDay = timestamp.getHours() * 60 + timestamp.getMinutes();
+                return { minutesIntoDay, cumulativeMinutes };
+            });
+
+            const now = new Date();
+            const elapsedHours = Math.max((now.getHours() * 60 + now.getMinutes()) / 60, 1 / 6);
+            const projectedEndOfDay = Math.max(
+                cumulativeMinutes,
+                Math.min(Math.round((cumulativeMinutes / elapsedHours) * 24), 300)
+            );
+            const maxMinutes = Math.max(projectedEndOfDay, cumulativeMinutes, 30);
+
+            const linePath = points
+                .map((point, index) => `${index === 0 ? 'M' : 'L'}${toChartX(point.minutesIntoDay)},${toChartY(point.cumulativeMinutes, maxMinutes)}`)
+                .join(' ');
+            chartLine.setAttribute('d', linePath);
+
+            const firstPoint = points[0];
+            const areaPath = `${linePath} L${toChartX(firstPoint.minutesIntoDay)},150 L${toChartX(firstPoint.minutesIntoDay)},${toChartY(firstPoint.cumulativeMinutes, maxMinutes)} Z`;
+            chartArea.setAttribute('d', areaPath);
+
+            chartActualPoints.innerHTML = points
+                .map(point => `<circle cx="${toChartX(point.minutesIntoDay)}" cy="${toChartY(point.cumulativeMinutes, maxMinutes)}" r="4" fill="#131520" stroke="#6366F1" stroke-width="2.5" />`)
+                .join('');
+
+            const lastPoint = points[points.length - 1];
+            const lastX = toChartX(lastPoint.minutesIntoDay);
+            const lastY = toChartY(lastPoint.cumulativeMinutes, maxMinutes);
+            liveChartIndicator.style.display = '';
+            liveChartIndicator.setAttribute('cx', `${lastX}`);
+            liveChartIndicator.setAttribute('cy', `${lastY}`);
+
+            const projectedX = 500;
+            const projectedY = toChartY(projectedEndOfDay, maxMinutes);
+            chartProjectionLine.setAttribute('d', `M${lastX},${lastY} L${projectedX},${projectedY}`);
+            chartProjectedLabel.textContent = `Projected EOD: ${projectedEndOfDay} min`;
+
+            peakActiveDisplay.textContent = `Today ${cumulativeMinutes} min | Projected ${projectedEndOfDay} min`;
+        }
 
         // Navigation Tab Switch Logic
         function switchTab(tabId) {
@@ -528,7 +644,7 @@
                 } else if (habit.type === 'numeric') {
                     valDisplay = `${habit.value} / ${habit.targetValue} ${habit.unit}`;
                 } else if (habit.type === 'duration') {
-                    valDisplay = `${habit.value} / ${habit.targetValue} mins`;
+                    valDisplay = `${formatDurationValue(habit.value, true)} / ${formatDurationValue(habit.targetValue, true)} hrs`;
                 }
 
                 card.innerHTML = `
@@ -594,16 +710,19 @@
                         </div>
                     `;
                 } else if (habit.type === 'duration') {
+                    const durationLabel = 'Hours';
+                    const durationUnit = 'hrs';
+                    const durationStep = 0.5;
                     div.innerHTML = `
                         <div class="flex flex-col">
                             <span class="text-xs font-medium text-gray-300">${habit.name}</span>
-                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (Minutes)</span>
+                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (${durationLabel})</span>
                         </div>
                         <div class="flex items-center gap-3 self-end sm:self-auto">
-                            <span class="text-[11px] font-mono text-gray-300 font-bold">${habit.value}/${habit.targetValue} min</span>
+                            <span class="text-[11px] font-mono text-gray-300 font-bold">${formatDurationValue(habit.value, true)}/${formatDurationValue(habit.targetValue, true)} ${durationUnit}</span>
                             <div class="flex gap-1.5">
-                                <button onclick="incrementHabitValue(${idx}, -5)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
-                                <button onclick="incrementHabitValue(${idx}, 5)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
+                                <button onclick="incrementHabitValue(${idx}, ${-durationStep})" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
+                                <button onclick="incrementHabitValue(${idx}, ${durationStep})" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
                             </div>
                         </div>
                     `;
@@ -675,6 +794,9 @@
             const target = state.habits[idx];
             let rawValue = target.value + increment;
             if (rawValue < 0) rawValue = 0;
+            if (target.type === 'duration') {
+                rawValue = Math.round(rawValue * 10) / 10;
+            }
             target.value = rawValue;
             target.completed_today = rawValue >= target.targetValue;
 
@@ -749,16 +871,12 @@
 
             let totalMins = 0;
             state.workouts.forEach(w => totalMins += w.duration_minutes);
-            peakActiveDisplay.textContent = `${totalMins} Mins Logged`;
 
             document.getElementById('challengeProgressFitness').textContent = `${totalMins} / 100 mins`;
             const challengeFitnessBar = document.getElementById('challengeProgressFitnessBar');
             challengeFitnessBar.style.width = `${Math.min(Math.round((totalMins / 100) * 100), 100)}%`;
 
-            const dynamicHeightPoint = Math.max(150 - Math.round((totalMins / 200) * 120), 20);
-            chartArea.setAttribute('d', `M0,150 L0,120 L80,100 L160,110 L240,${dynamicHeightPoint} L320,80 L400,45 L500,70 L500,150 Z`);
-            chartLine.setAttribute('d', `M0,120 L80,100 L160,110 L240,${dynamicHeightPoint} L320,80 L400,45 L500,70`);
-            liveChartIndicator.setAttribute('cy', dynamicHeightPoint);
+            renderActivityTimelineChart();
 
             updatePulseScore();
         }

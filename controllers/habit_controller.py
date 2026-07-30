@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import List
 
 from fastapi import HTTPException
@@ -11,6 +11,31 @@ from models.user import User
 from schemas.habit import HabitCreate, HabitLog, HabitUpdate
 
 SYSTEM_HABIT_SLUGS = {"hydration", "sleep", "workout"}
+SLEEP_RECOVERY_MIN_HOURS = 5.0
+SLEEP_RECOVERY_MAX_HOURS = 12.0
+SLEEP_UNIT_ALIASES = {"hours", "hour", "hrs", "hr"}
+MINUTES_TO_HOURS_THRESHOLD = 24
+
+
+def _is_sleep_habit(habit: Habit) -> bool:
+    slug = (habit.slug or "").strip().lower()
+    name = (habit.name or "").strip().lower()
+    category = (habit.category or "").strip().lower()
+    target_value = float(habit.target_value or 0)
+
+    if "sleep" in slug or "sleep" in name:
+        return True
+
+    # Fallback for legacy/default sleep entries that may have inconsistent naming.
+    return category == "recovery" and SLEEP_RECOVERY_MIN_HOURS <= target_value <= SLEEP_RECOVERY_MAX_HOURS
+
+
+def _coerce_minutes_to_hours(value: float | None) -> float | None:
+    if value is None:
+        return None
+    if value > MINUTES_TO_HOURS_THRESHOLD:
+        return round(value / 60.0, 1)
+    return value
 
 
 def _slugify(name: str) -> str:
@@ -84,6 +109,86 @@ def _update_completion_state(habit: Habit, explicit_completed_today: bool | None
         habit.streak_count = max(habit.streak_count - 1, 0)
 
 
+def _updated_date(habit: Habit) -> date | None:
+    updated_at = getattr(habit, "updated_at", None)
+    if isinstance(updated_at, datetime):
+        return updated_at.date()
+    return None
+
+
+def _should_rollover_daily_habit(habit: Habit, today: date) -> bool:
+    if (habit.frequency or "").lower() != "daily":
+        return False
+
+    updated_on = _updated_date(habit)
+    if updated_on is not None:
+        return updated_on < today
+
+    return bool(habit.completed_today and habit.last_completed_date != today)
+
+
+def _apply_daily_rollover(habit: Habit) -> bool:
+    changed = False
+    if habit.current_value != 0:
+        habit.current_value = 0.0
+        changed = True
+    if habit.completed_today:
+        habit.completed_today = False
+        changed = True
+    return changed
+
+
+def _reset_stale_daily_habits(db: Session, user_id: int) -> bool:
+    today = date.today()
+    user_habits = db.query(Habit).filter(Habit.user_id == user_id).all()
+
+    changed_any = False
+    for habit in user_habits:
+        if _should_rollover_daily_habit(habit, today):
+            changed_any = _apply_daily_rollover(habit) or changed_any
+
+    if changed_any:
+        db.commit()
+        refresh_goals_for_user(user_id, user_habits)
+
+    return changed_any
+
+
+def _normalize_system_habits(db: Session, user_id: int) -> bool:
+    user_habits = db.query(Habit).filter(Habit.user_id == user_id).all()
+    changed_any = False
+
+    for habit in user_habits:
+        if not _is_sleep_habit(habit):
+            continue
+
+        if habit.track_method != "duration":
+            habit.track_method = "duration"
+            changed_any = True
+
+        normalized_unit = (habit.unit or "").strip().lower()
+        if normalized_unit not in SLEEP_UNIT_ALIASES or habit.unit != "hours":
+            habit.unit = "hours"
+            changed_any = True
+
+        # Legacy sleep values were sometimes stored in minutes; convert to hours once.
+        normalized_target = _coerce_minutes_to_hours(habit.target_value)
+        if normalized_target is not None and normalized_target != habit.target_value:
+            habit.target_value = normalized_target
+            changed_any = True
+
+        normalized_current = _coerce_minutes_to_hours(habit.current_value)
+        if normalized_current is not None and normalized_current != habit.current_value:
+            habit.current_value = normalized_current
+            changed_any = True
+
+    if changed_any:
+        db.commit()
+        refresh_goals_for_user(user_id, user_habits)
+
+    return changed_any
+
+
 def _ensure_default_habits(db: Session, user_id: int) -> None:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -114,6 +219,8 @@ def _ensure_default_habits(db: Session, user_id: int) -> None:
         created_any = True
     if created_any:
         db.commit()
+
+    _normalize_system_habits(db, user_id)
 
 
 def _get_habit_query(db: Session, habit_id: int):
@@ -206,6 +313,7 @@ def list_habits() -> List[Habit]:
         user_ids = [user_id for (user_id,) in db.query(User.id).all()]
         for user_id in user_ids:
             _ensure_default_habits(db, user_id)
+            _reset_stale_daily_habits(db, user_id)
         return db.query(Habit).order_by(Habit.user_id, Habit.id).all()
     finally:
         db.close()
@@ -215,7 +323,17 @@ def list_habits_by_user(user_id: int) -> List[Habit]:
     db: Session = SessionLocal()
     try:
         _ensure_default_habits(db, user_id)
+        _reset_stale_daily_habits(db, user_id)
         return db.query(Habit).filter(Habit.user_id == user_id).order_by(Habit.id).all()
+    finally:
+        db.close()
+
+
+def reset_daily_habits_for_new_day(user_id: int) -> bool:
+    db: Session = SessionLocal()
+    try:
+        _ensure_default_habits(db, user_id)
+        return _reset_stale_daily_habits(db, user_id)
     finally:
         db.close()
 
