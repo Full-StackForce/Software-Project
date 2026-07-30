@@ -2,6 +2,25 @@
             font-family: 'Inter', sans-serif;
             background-color: #090A10;
         }
+
+        .pp-entry-input {
+            background: #090A10;
+            border: 1px solid #1f2937;
+            color: #d1d5db;
+        }
+
+        .pp-entry-input::placeholder {
+            color: #6b7280;
+        }
+
+        .pp-entry-select {
+            color: #9ca3af;
+        }
+
+        .pp-entry-select option {
+            color: #d1d5db;
+            background: #131520;
+        }
         /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;

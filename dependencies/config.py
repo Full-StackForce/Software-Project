@@ -1,6 +1,6 @@
 ##Connect to sql database
 class conf:
-    db_host = "localhost"
+    db_host = "YOURHOST"
     db_name = "pulsepoint"
     db_port = 3306
     db_user = "root"
