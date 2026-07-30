@@ -315,7 +315,7 @@
                     session.keys.userEmail,
                     session.keys.userStreak,
                 ]);
-                window.location.href = 'http://127.0.0.1:8000/login';
+                window.location.href = 'https://pulsepointtrain.com/login';
             }
         }
 
