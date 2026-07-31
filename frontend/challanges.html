@@ -173,6 +173,16 @@
 			try {
 				const response = await fetch(`${API_BASE}/auth/me/${currentUserId}`);
 				if (!response.ok) {
+					if (response.status === 401 || response.status === 404) {
+						storage.removeMany([
+							session.keys.userId,
+							session.keys.userName,
+							session.keys.userEmail,
+							session.keys.userStreak,
+						]);
+						window.location.href = '/login';
+						return;
+					}
 					throw new Error(`Failed to fetch user details: ${response.status}`);
 				}
 
