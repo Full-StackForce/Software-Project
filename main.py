@@ -53,15 +53,50 @@ def ensure_user_profile_columns() -> None:
         statements.append("ALTER TABLE users ADD COLUMN gender VARCHAR(30) NULL")
     if "height_cm" not in existing_columns:
         statements.append("ALTER TABLE users ADD COLUMN height_cm FLOAT NULL")
-    if "weight_kg" not in existing_columns:
-        statements.append("ALTER TABLE users ADD COLUMN weight_kg FLOAT NULL")
-    if "target_weight_kg" not in existing_columns:
-        statements.append("ALTER TABLE users ADD COLUMN target_weight_kg FLOAT NULL")
+    if "weight_lbs" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN weight_lbs FLOAT NULL")
+    if "target_weight_lbs" not in existing_columns:
+        statements.append("ALTER TABLE users ADD COLUMN target_weight_lbs FLOAT NULL")
 
-    if statements:
-        with engine.begin() as connection:
-            for statement in statements:
-                connection.execute(text(statement))
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+
+        # Backfill from legacy kg columns when present.
+        if "weight_kg" in existing_columns and "weight_lbs" in {column["name"] for column in inspect(engine).get_columns("users")}:
+            connection.execute(text(
+                "UPDATE users SET weight_lbs = ROUND(weight_kg * 2.20462, 1) "
+                "WHERE weight_lbs IS NULL AND weight_kg IS NOT NULL"
+            ))
+
+        if "target_weight_kg" in existing_columns and "target_weight_lbs" in {column["name"] for column in inspect(engine).get_columns("users")}:
+            connection.execute(text(
+                "UPDATE users SET target_weight_lbs = ROUND(target_weight_kg * 2.20462, 1) "
+                "WHERE target_weight_lbs IS NULL AND target_weight_kg IS NOT NULL"
+            ))
+
+
+def ensure_weight_log_columns() -> None:
+    inspector = inspect(engine)
+    if "weight_logs" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("weight_logs")}
+    statements = []
+
+    if "weight_lbs" not in existing_columns:
+        statements.append("ALTER TABLE weight_logs ADD COLUMN weight_lbs FLOAT NULL")
+
+    with engine.begin() as connection:
+        for statement in statements:
+            connection.execute(text(statement))
+
+        # Backfill from legacy kg column when present.
+        if "weight_kg" in existing_columns and "weight_lbs" in {column["name"] for column in inspect(engine).get_columns("weight_logs")}:
+            connection.execute(text(
+                "UPDATE weight_logs SET weight_lbs = ROUND(weight_kg * 2.20462, 1) "
+                "WHERE weight_lbs IS NULL AND weight_kg IS NOT NULL"
+            ))
 
 
 def initialize_database_schema() -> None:
@@ -69,6 +104,7 @@ def initialize_database_schema() -> None:
     try:
         Base.metadata.create_all(bind=engine)
         ensure_user_profile_columns()
+        ensure_weight_log_columns()
     except SQLAlchemyError as exc:
         # Keep the app bootable when DB is temporarily unavailable.
         print(f"Warning: database initialization skipped: {exc}")

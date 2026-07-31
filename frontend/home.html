@@ -347,63 +347,6 @@
 
             </div>
 
-            <!-- High Fidelity Heart Rate & Fitness Trends Line Chart SVG -->
-            <div class="pp-shell-xl">
-                <div class="pp-chart-header">
-                    <div>
-                        <h3 class="text-base font-bold text-white">Today's Activity Timeline</h3>
-                        <p class="text-xs text-gray-400">Solid points show logged workout times. Dashed line shows projected end-of-day total.</p>
-                    </div>
-                    <div class="pp-chart-legend">
-                        <span class="pp-chart-dot"></span>
-                        <span class="text-xs text-gray-400">Cumulative Minutes</span>
-                    </div>
-                </div>
-
-                <div class="pp-chart-area">
-                    <svg class="w-full h-full" viewBox="0 0 500 150" preserveAspectRatio="none">
-                        <!-- Chart Grid Lines -->
-                        <line x1="0" y1="30" x2="500" y2="30" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
-                        <line x1="0" y1="75" x2="500" y2="75" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
-                        <line x1="0" y1="120" x2="500" y2="120" stroke="#1F2937" stroke-width="1" stroke-dasharray="4,4"/>
-
-                        <defs>
-                            <linearGradient id="chartGlow" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#6366F1" stop-opacity="0.3" />
-                                <stop offset="100%" stop-color="#6366F1" stop-opacity="0" />
-                            </linearGradient>
-                        </defs>
-                        <!-- Area path under trend line -->
-                        <path id="chartArea" d="M0,150 L0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70 L500,150 Z" fill="url(#chartGlow)"/>
-
-                        <!-- Trend Line path -->
-                        <path id="chartLine" d="M0,120 L80,100 L160,110 L240,110 L320,80 L400,45 L500,70" fill="none" stroke="#6366F1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" class="transition-all duration-500"/>
-
-                        <!-- Projected line and end-of-day point -->
-                        <path id="chartProjectionLine" d="" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="5,5" stroke-linecap="round"/>
-                        <text id="chartProjectedLabel" x="498" y="16" text-anchor="end" fill="#10B981" font-size="9" font-weight="700" font-family="monospace"></text>
-                        
-                        <!-- Pulse Point indicators -->
-                        <g id="chartActualPoints"></g>
-                        <circle id="liveChartIndicator" cx="240" cy="110" r="4.5" fill="#131520" stroke="#10B981" stroke-width="3" class="transition-all duration-300"/>
-                    </svg>
-
-                    <!-- Data Tooltip Tag Inside Graph -->
-                    <div class="pp-chart-tooltip">
-                        <span class="text-gray-500">METABOLIC WORKLOAD</span>
-                        <span class="text-white font-extrabold" id="peakActiveDisplay">Active (Normal)</span>
-                    </div>
-                </div>
-
-                <div class="pp-chart-timeline">
-                    <span>12:00 AM</span>
-                    <span>06:00 AM</span>
-                    <span>12:00 PM</span>
-                    <span>06:00 PM</span>
-                    <span>12:00 AM</span>
-                </div>
-            </div>
-
         </section>
 
     </main>

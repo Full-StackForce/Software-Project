@@ -10,5 +10,5 @@ class WeightLog(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     log_date = Column(Date, nullable=False, index=True)
-    weight_kg = Column(Float, nullable=False)
+    weight_lbs = Column(Float, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

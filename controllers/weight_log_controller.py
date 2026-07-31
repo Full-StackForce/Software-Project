@@ -19,12 +19,12 @@ def create_weight_log(user_id: int, payload: WeightLogCreate) -> WeightLog | Non
         log_entry = WeightLog(
             user_id=user_id,
             log_date=payload.log_date or date.today(),
-            weight_kg=payload.weight_kg,
+            weight_lbs=payload.weight_lbs,
         )
         db.add(log_entry)
 
         # Keep profile weight aligned with latest explicit log.
-        user.weight_kg = payload.weight_kg
+        user.weight_lbs = payload.weight_lbs
 
         db.commit()
         db.refresh(log_entry)

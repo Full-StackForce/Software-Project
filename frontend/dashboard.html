@@ -293,7 +293,7 @@
 						<canvas id="weightTrendChart"></canvas>
 					</div>
 					<div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-						<input id="weightInput" type="number" min="1" step="0.1" placeholder="Log weight (kg)"
+						<input id="weightInput" type="number" min="1" step="0.1" placeholder="Log weight (lbs)"
 							class="pp-inline-input">
 						<button onclick="logWeight()" class="btn" type="button">Save Weight</button>
 					</div>
@@ -447,14 +447,14 @@
 				const d = new Date(item.log_date);
 				return `${d.getMonth() + 1}/${d.getDate()}`;
 			});
-			const data = weightLogs.map(item => Number(item.weight_kg || 0));
+			const data = weightLogs.map(item => Number(item.weight_lbs || 0));
 
 			weightTrendChart = createOrReplaceChart(weightTrendChart, 'weightTrendChart', {
 				type: 'line',
 				data: {
 					labels,
 					datasets: [{
-						label: 'Weight (kg)',
+						label: 'Weight (lbs)',
 						data,
 						borderColor: '#ffb347',
 						backgroundColor: 'rgba(255, 179, 71, 0.2)',
@@ -483,7 +483,6 @@
 
 			const insights = [];
 			const badges = [];
-
 			if (workouts.length === 0) {
 				insights.push('No workout sessions logged yet. Add 2 to 3 sessions this week to unlock trend-based guidance.');
 				badges.push('Needs workout data');
@@ -517,18 +516,18 @@
 				}
 			}
 
-			const currentWeight = Number(profile.weight_kg || 0);
-			const targetWeight = Number(profile.target_weight_kg || 0);
+			const currentWeight = Number(profile.weight_lbs || 0);
+			const targetWeight = Number(profile.target_weight_lbs || 0);
 			if (currentWeight > 0 && targetWeight > 0) {
 				const diff = Number((currentWeight - targetWeight).toFixed(1));
 				if (diff > 0) {
-					insights.push(`Current weight is ${currentWeight}kg, which is ${diff}kg above your target (${targetWeight}kg).`);
+					insights.push(`Current weight is ${currentWeight} lbs, which is ${diff} lbs above your target (${targetWeight} lbs).`);
 					badges.push('Weight target active');
 				} else if (diff < 0) {
-					insights.push(`Current weight is ${currentWeight}kg, about ${Math.abs(diff)}kg below your target (${targetWeight}kg).`);
+					insights.push(`Current weight is ${currentWeight} lbs, about ${Math.abs(diff)} lbs below your target (${targetWeight} lbs).`);
 					badges.push('Below target weight');
 				} else {
-					insights.push(`You are currently at your target weight (${targetWeight}kg).`);
+					insights.push(`You are currently at your target weight (${targetWeight} lbs).`);
 					badges.push('Target matched');
 				}
 			} else {
@@ -537,13 +536,13 @@
 			}
 
 			if (weightLogs.length >= 2) {
-				const first = Number(weightLogs[0].weight_kg || 0);
-				const last = Number(weightLogs[weightLogs.length - 1].weight_kg || 0);
+				const first = Number(weightLogs[0].weight_lbs || 0);
+				const last = Number(weightLogs[weightLogs.length - 1].weight_lbs || 0);
 				const change = Number((last - first).toFixed(1));
 				if (change > 0) {
-					insights.push(`Weight trend across logged entries is up ${change}kg from first to latest measurement.`);
+					insights.push(`Weight trend across logged entries is up ${change} lbs from first to latest measurement.`);
 				} else if (change < 0) {
-					insights.push(`Weight trend across logged entries is down ${Math.abs(change)}kg from first to latest measurement.`);
+					insights.push(`Weight trend across logged entries is down ${Math.abs(change)} lbs from first to latest measurement.`);
 				} else {
 					insights.push('Weight trend is stable across logged entries.');
 				}
@@ -577,7 +576,7 @@
 					fetch(`${API_BASE}/auth/me/${userId}`),
 					fetch(`${API_BASE}/workouts/user/${userId}`),
 					fetch(`${API_BASE}/habits/user/${userId}`),
-					fetch(`${API_BASE}/users/${userId}/details?fields=gender,height_cm,weight_kg,target_weight_kg`),
+					fetch(`${API_BASE}/users/${userId}/details?fields=gender,height_cm,weight_lbs,target_weight_lbs`),
 					fetch(`${API_BASE}/users/${userId}/weight-logs`),
 				]);
 
@@ -617,14 +616,14 @@
 			const input = document.getElementById('weightInput');
 			const value = Number(input.value);
 			if (!value || value <= 0) {
-				alert('Please enter a valid weight in kg.');
+				alert('Please enter a valid weight in lbs.');
 				return;
 			}
 
 			const response = await fetch(`${API_BASE}/users/${userId}/weight-logs`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ weight_kg: value }),
+				body: JSON.stringify({ weight_lbs: value }),
 			});
 
 			if (!response.ok) {

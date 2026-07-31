@@ -140,6 +140,13 @@
             }
         }
 
+        function formatDurationValue(value, isHourBased) {
+            if (isHourBased) {
+                return Number(value || 0).toFixed(1);
+            }
+            return `${Math.round(Number(value || 0))}`;
+        }
+
         async function logHabitProgressOnBackend(habitId, payload) {
             try {
                 const response = await fetch(`${API_BASE}/habits/${habitId}/log`, {
@@ -364,102 +371,12 @@
 
         const dashActiveDaysCount = document.getElementById('dashActiveDaysCount');
         const dashActiveDaysProgressContainer = document.getElementById('dashActiveDaysProgressContainer');
-        const peakActiveDisplay = document.getElementById('peakActiveDisplay');
 
         const dashHabitText = document.getElementById('dashHabitText');
         const dashHabitsStatus = document.getElementById('dashHabitsStatus');
 
         const dashPulseScore = document.getElementById('dashPulseScore');
         const dashPulseRing = document.getElementById('dashPulseRing');
-
-        const chartArea = document.getElementById('chartArea');
-        const chartLine = document.getElementById('chartLine');
-        const liveChartIndicator = document.getElementById('liveChartIndicator');
-        const chartProjectionLine = document.getElementById('chartProjectionLine');
-        const chartProjectedLabel = document.getElementById('chartProjectedLabel');
-        const chartActualPoints = document.getElementById('chartActualPoints');
-
-        function formatDurationValue(value, isHourBased) {
-            if (isHourBased) {
-                return Number(value || 0).toFixed(1);
-            }
-            return `${Math.round(Number(value || 0))}`;
-        }
-
-        function toChartX(minutesIntoDay) {
-            return Math.max(0, Math.min(500, (minutesIntoDay / 1440) * 500));
-        }
-
-        function toChartY(minutes, maxMinutes) {
-            const top = 15;
-            const bottom = 140;
-            const safeMax = Math.max(maxMinutes, 1);
-            const ratio = Math.max(0, Math.min(1, minutes / safeMax));
-            return bottom - ratio * (bottom - top);
-        }
-
-        function renderActivityTimelineChart() {
-            const todaysWorkouts = state.workouts
-                .filter(workout => {
-                    const timestamp = new Date(workout.completed_at);
-                    return timestamp.toDateString() === new Date().toDateString();
-                })
-                .sort((a, b) => new Date(a.completed_at) - new Date(b.completed_at));
-
-            if (todaysWorkouts.length === 0) {
-                chartArea.setAttribute('d', 'M0,150 L500,150 L500,150 Z');
-                chartLine.setAttribute('d', '');
-                chartProjectionLine.setAttribute('d', '');
-                chartActualPoints.innerHTML = '';
-                liveChartIndicator.style.display = 'none';
-                chartProjectedLabel.textContent = 'Projected EOD: 0 min';
-                peakActiveDisplay.textContent = 'No workouts logged today';
-                return;
-            }
-
-            let cumulativeMinutes = 0;
-            const points = todaysWorkouts.map(workout => {
-                cumulativeMinutes += Number(workout.duration_minutes || 0);
-                const timestamp = new Date(workout.completed_at);
-                const minutesIntoDay = timestamp.getHours() * 60 + timestamp.getMinutes();
-                return { minutesIntoDay, cumulativeMinutes };
-            });
-
-            const now = new Date();
-            const elapsedHours = Math.max((now.getHours() * 60 + now.getMinutes()) / 60, 1 / 6);
-            const projectedEndOfDay = Math.max(
-                cumulativeMinutes,
-                Math.min(Math.round((cumulativeMinutes / elapsedHours) * 24), 300)
-            );
-            const maxMinutes = Math.max(projectedEndOfDay, cumulativeMinutes, 30);
-
-            const linePath = points
-                .map((point, index) => `${index === 0 ? 'M' : 'L'}${toChartX(point.minutesIntoDay)},${toChartY(point.cumulativeMinutes, maxMinutes)}`)
-                .join(' ');
-            chartLine.setAttribute('d', linePath);
-
-            const firstPoint = points[0];
-            const areaPath = `${linePath} L${toChartX(firstPoint.minutesIntoDay)},150 L${toChartX(firstPoint.minutesIntoDay)},${toChartY(firstPoint.cumulativeMinutes, maxMinutes)} Z`;
-            chartArea.setAttribute('d', areaPath);
-
-            chartActualPoints.innerHTML = points
-                .map(point => `<circle cx="${toChartX(point.minutesIntoDay)}" cy="${toChartY(point.cumulativeMinutes, maxMinutes)}" r="4" fill="#131520" stroke="#6366F1" stroke-width="2.5" />`)
-                .join('');
-
-            const lastPoint = points[points.length - 1];
-            const lastX = toChartX(lastPoint.minutesIntoDay);
-            const lastY = toChartY(lastPoint.cumulativeMinutes, maxMinutes);
-            liveChartIndicator.style.display = '';
-            liveChartIndicator.setAttribute('cx', `${lastX}`);
-            liveChartIndicator.setAttribute('cy', `${lastY}`);
-
-            const projectedX = 500;
-            const projectedY = toChartY(projectedEndOfDay, maxMinutes);
-            chartProjectionLine.setAttribute('d', `M${lastX},${lastY} L${projectedX},${projectedY}`);
-            chartProjectedLabel.textContent = `Projected EOD: ${projectedEndOfDay} min`;
-
-            peakActiveDisplay.textContent = `Today ${cumulativeMinutes} min | Projected ${projectedEndOfDay} min`;
-        }
 
         // Navigation Tab Switch Logic
         function switchTab(tabId) {
@@ -875,8 +792,6 @@
             document.getElementById('challengeProgressFitness').textContent = `${totalMins} / 100 mins`;
             const challengeFitnessBar = document.getElementById('challengeProgressFitnessBar');
             challengeFitnessBar.style.width = `${Math.min(Math.round((totalMins / 100) * 100), 100)}%`;
-
-            renderActivityTimelineChart();
 
             updatePulseScore();
         }

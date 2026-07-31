@@ -22,8 +22,8 @@ def create_user(payload: UserCreate) -> User:
         focus = payload.focus or "General Wellness"
         gender = payload.gender or "prefer_not_to_say"
         height_cm = payload.height_cm if payload.height_cm is not None else 170.0
-        weight_kg = payload.weight_kg if payload.weight_kg is not None else 70.0
-        target_weight_kg = payload.target_weight_kg if payload.target_weight_kg is not None else max(weight_kg - 2.0, 1.0)
+        weight_lbs = payload.weight_lbs if payload.weight_lbs is not None else 154.0
+        target_weight_lbs = payload.target_weight_lbs if payload.target_weight_lbs is not None else max(weight_lbs - 5.0, 1.0)
         bedtime = payload.bedtime or "22:30"
         active_days = payload.active_days if payload.active_days is not None else 4
         hydration_goal = payload.hydration_goal or "2.5"
@@ -37,8 +37,8 @@ def create_user(payload: UserCreate) -> User:
             focus=focus,
             gender=gender,
             height_cm=height_cm,
-            weight_kg=weight_kg,
-            target_weight_kg=target_weight_kg,
+            weight_lbs=weight_lbs,
+            target_weight_lbs=target_weight_lbs,
             bedtime=bedtime,
             active_days=active_days,
             hydration_goal=hydration_goal,
@@ -48,7 +48,7 @@ def create_user(payload: UserCreate) -> User:
         db.refresh(db_user)
 
         # Seed the first weight log so trend analysis has an initial baseline.
-        db.add(WeightLog(user_id=db_user.id, log_date=date.today(), weight_kg=weight_kg))
+        db.add(WeightLog(user_id=db_user.id, log_date=date.today(), weight_lbs=weight_lbs))
         db.commit()
         db.refresh(db_user)
 

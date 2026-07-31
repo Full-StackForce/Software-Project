@@ -16,8 +16,8 @@
             timezone: 'pulseTimezone',
             gender: 'pulseGender',
             heightCm: 'pulseHeightCm',
-            weightKg: 'pulseWeightKg',
-            targetWeightKg: 'pulseTargetWeightKg',
+            weightLbs: 'pulseWeightLbs',
+            targetWeightLbs: 'pulseTargetWeightLbs',
             bedtime: 'pulseBedtime',
             activeDays: 'pulseActiveDays',
             hydration: 'pulseHydration'
@@ -268,8 +268,8 @@
                 timezone: storage.get(PROFILE_STORAGE_MAP.timezone, 'UTC'),
                 gender: storage.get(PROFILE_STORAGE_MAP.gender, ''),
                 heightCm: storage.get(PROFILE_STORAGE_MAP.heightCm, ''),
-                weightKg: storage.get(PROFILE_STORAGE_MAP.weightKg, ''),
-                targetWeightKg: storage.get(PROFILE_STORAGE_MAP.targetWeightKg, ''),
+                weightLbs: storage.get(PROFILE_STORAGE_MAP.weightLbs, ''),
+                targetWeightLbs: storage.get(PROFILE_STORAGE_MAP.targetWeightLbs, ''),
                 bedtime: storage.get(PROFILE_STORAGE_MAP.bedtime, ''),
                 activeDays: storage.get(PROFILE_STORAGE_MAP.activeDays, '4'),
                 hydration: storage.get(PROFILE_STORAGE_MAP.hydration, '')
@@ -421,13 +421,13 @@
                                     class="pp-field">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Weight (kg)</label>
-                                <input id="weightKg" type="number" min="1" step="0.1" placeholder="65"
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Weight (lbs)</label>
+                                <input id="weightLbs" type="number" min="1" step="0.1" placeholder="154"
                                     class="pp-field">
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Target Weight (kg)</label>
-                                <input id="targetWeightKg" type="number" min="1" step="0.1" placeholder="60"
+                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Target Weight (lbs)</label>
+                                <input id="targetWeightLbs" type="number" min="1" step="0.1" placeholder="145"
                                     class="pp-field">
                             </div>
                         </div>
@@ -464,8 +464,8 @@
             if (document.getElementById('timezone'))   state.profile.timezone   = get('timezone') || 'UTC';
             if (document.getElementById('gender'))     state.profile.gender     = get('gender');
             if (document.getElementById('heightCm'))   state.profile.heightCm   = get('heightCm');
-            if (document.getElementById('weightKg'))   state.profile.weightKg   = get('weightKg');
-            if (document.getElementById('targetWeightKg')) state.profile.targetWeightKg = get('targetWeightKg');
+            if (document.getElementById('weightLbs'))   state.profile.weightLbs   = get('weightLbs');
+            if (document.getElementById('targetWeightLbs')) state.profile.targetWeightLbs = get('targetWeightLbs');
             if (document.getElementById('bedtime'))    state.profile.bedtime    = get('bedtime');
             if (document.getElementById('activeDays')) state.profile.activeDays = get('activeDays') || '4';
             if (document.getElementById('hydration'))  state.profile.hydration  = get('hydration');
@@ -486,8 +486,8 @@
             set('timezone',   state.profile.timezone);
             set('gender',     state.profile.gender);
             set('heightCm',   state.profile.heightCm);
-            set('weightKg',   state.profile.weightKg);
-            set('targetWeightKg', state.profile.targetWeightKg);
+            set('weightLbs',   state.profile.weightLbs);
+            set('targetWeightLbs', state.profile.targetWeightLbs);
             set('bedtime',    state.profile.bedtime);
             set('activeDays', state.profile.activeDays);
             set('hydration',  state.profile.hydration);
@@ -532,17 +532,17 @@
                 return false;
             }
             const heightCm = Number(state.profile.heightCm || 0);
-            const weightKg = Number(state.profile.weightKg || 0);
-            const targetWeightKg = Number(state.profile.targetWeightKg || 0);
+            const weightLbs = Number(state.profile.weightLbs || 0);
+            const targetWeightLbs = Number(state.profile.targetWeightLbs || 0);
             if (state.profile.heightCm && heightCm <= 0) {
                 showStatus('Height must be a positive number.', true);
                 return false;
             }
-            if (state.profile.weightKg && weightKg <= 0) {
+            if (state.profile.weightLbs && weightLbs <= 0) {
                 showStatus('Weight must be a positive number.', true);
                 return false;
             }
-            if (state.profile.targetWeightKg && targetWeightKg <= 0) {
+            if (state.profile.targetWeightLbs && targetWeightLbs <= 0) {
                 showStatus('Target weight must be a positive number.', true);
                 return false;
             }
@@ -560,8 +560,8 @@
                     focus: 'Focus',
                     gender: 'Gender',
                     height_cm: 'Height',
-                    weight_kg: 'Weight',
-                    target_weight_kg: 'Target weight',
+                    weight_lbs: 'Weight',
+                    target_weight_lbs: 'Target weight',
                     bedtime: 'Bedtime',
                     active_days: 'Active days',
                     hydration_goal: 'Hydration goal'
@@ -671,8 +671,8 @@
             const bedtime    = state.profile.bedtime    || '—';
             const activeDays = state.profile.activeDays || '4';
             const height     = state.profile.heightCm ? `${state.profile.heightCm}cm` : '—';
-            const weight     = state.profile.weightKg ? `${state.profile.weightKg}kg` : '—';
-            const targetWeight = state.profile.targetWeightKg ? `${state.profile.targetWeightKg}kg` : '—';
+            const weight     = state.profile.weightLbs ? `${state.profile.weightLbs}lbs` : '—';
+            const targetWeight = state.profile.targetWeightLbs ? `${state.profile.targetWeightLbs}lbs` : '—';
             document.getElementById('dashWaterText').textContent    = hydration;
             document.getElementById('dashBedtimeText').textContent  = bedtime;
             document.getElementById('dashActiveDaysText').textContent = `${activeDays} Days`;
@@ -722,8 +722,8 @@
                 focus:          state.focus.length ? state.focus.join(', ') : 'General Wellness',
                 gender:         state.profile.gender || 'prefer_not_to_say',
                 height_cm:      state.profile.heightCm ? Number(state.profile.heightCm) : 170,
-                weight_kg:      state.profile.weightKg ? Number(state.profile.weightKg) : 70,
-                target_weight_kg: state.profile.targetWeightKg ? Number(state.profile.targetWeightKg) : (state.profile.weightKg ? Math.max(Number(state.profile.weightKg) - 2, 1) : 68),
+                weight_lbs:      state.profile.weightLbs ? Number(state.profile.weightLbs) : 154,
+                target_weight_lbs: state.profile.targetWeightLbs ? Number(state.profile.targetWeightLbs) : (state.profile.weightLbs ? Math.max(Number(state.profile.weightLbs) - 5, 1) : 149),
                 bedtime:        state.profile.bedtime  || '22:30',
                 active_days:    Number(state.profile.activeDays || 4),
                 hydration_goal: state.profile.hydration || '2.5'

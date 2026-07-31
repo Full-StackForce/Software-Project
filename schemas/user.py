@@ -16,8 +16,8 @@ class UserCreate(BaseModel):
     focus: Optional[str] = Field(None, min_length=3, max_length=255)
     gender: Optional[Literal["female", "male", "non-binary", "prefer_not_to_say"]] = Field(None, example="female")
     height_cm: Optional[float] = Field(None, gt=0, le=300, example=170)
-    weight_kg: Optional[float] = Field(None, gt=0, le=600, example=65)
-    target_weight_kg: Optional[float] = Field(None, gt=0, le=600, example=60)
+    weight_lbs: Optional[float] = Field(None, gt=0, le=1400, example=154)
+    target_weight_lbs: Optional[float] = Field(None, gt=0, le=1400, example=145)
     bedtime: Optional[str] = None
     active_days: Optional[int] = Field(None, ge=1, le=7)
     hydration_goal: Optional[str] = None
@@ -64,8 +64,8 @@ class UserUpdate(BaseModel):
     focus: Optional[str] = Field(None, min_length=3, max_length=255)
     gender: Optional[Literal["female", "male", "non-binary", "prefer_not_to_say"]] = Field(None, example="female")
     height_cm: Optional[float] = Field(None, gt=0, le=300, example=170)
-    weight_kg: Optional[float] = Field(None, gt=0, le=600, example=65)
-    target_weight_kg: Optional[float] = Field(None, gt=0, le=600, example=60)
+    weight_lbs: Optional[float] = Field(None, gt=0, le=1400, example=154)
+    target_weight_lbs: Optional[float] = Field(None, gt=0, le=1400, example=145)
     bedtime: Optional[str] = None
     active_days: Optional[int] = Field(None, ge=1, le=7)
     hydration_goal: Optional[str] = None
@@ -112,8 +112,8 @@ class UserResponse(BaseModel):
     focus: Optional[str] = None
     gender: Optional[str] = None
     height_cm: Optional[float] = None
-    weight_kg: Optional[float] = None
-    target_weight_kg: Optional[float] = None
+    weight_lbs: Optional[float] = None
+    target_weight_lbs: Optional[float] = None
     bedtime: Optional[str] = None
     active_days: Optional[int] = None
     hydration_goal: Optional[str] = None
