@@ -77,7 +77,6 @@
             Complete challenges to earn XP, unlock badges, and build your daily streak.
         </p>
     </div>
-	<div class="flex justify-between items-center mb-8">
 
     <!-- Stats -->
     <div class="grid md:grid-cols-3 gap-6 mb-10">
@@ -234,37 +233,57 @@
 		}
 
 		async function loadChallenges() {
-			const container = document.getElementById('dailyChallengesContainer');
+    		const container = document.getElementById("dailyChallengesContainer");
 
-			try {
-				const [challengesRes, streaksRes] = await Promise.all([
-					fetch(`${API_BASE}/challenges/`),
-					fetch(`${API_BASE}/challenges/streaks/${currentUserId}`),
-				]);
+    		try {
+        		const challengesRes = await fetch(`${API_BASE}/challenges/`);
+        		const streaksRes = await fetch(
+            		`${API_BASE}/challenges/streaks/${currentUserId}`
+        		);
 
-				if (!challengesRes.ok) throw new Error(`Failed to fetch challenges: ${challengesRes.status}`);
-				if (!streaksRes.ok) throw new Error(`Failed to fetch streaks: ${streaksRes.status}`);
+        		if (!challengesRes.ok || !streaksRes.ok) {
+            		throw new Error("Failed to load challenges.");
+        		}
 
-				const challenges = await challengesRes.json();
-				const streaks = await streaksRes.json();
-				const streakMap = Object.fromEntries(streaks.map(s => [s.challenge_id, s]));
+        		const challenges = await challengesRes.json();
+        		const streaks = await streaksRes.json();
 
-				if (challenges.length === 0) {
-					container.innerHTML = `<p class="text-gray-400">No challenges available yet.</p>`;
-					return;
-				}
+        		// Only display DAILY challenges in this section
+        		const dailyChallenges = challenges.filter(
+            		challenge => challenge.challenge_type === "daily"
+        		);
 
-				container.innerHTML = challenges
-					.map(challenge => renderChallengeCard(challenge, streakMap[challenge.id]))
-					.join('');
+        		const streakMap = Object.fromEntries(
+         			streaks.map(streak => [streak.challenge_id, streak])
+        		);
 
-				document.querySelectorAll('.complete-btn').forEach(btn => {
-					btn.addEventListener('click', () => completeChallenge(btn.dataset.challengeId));
-				});
-			} catch (error) {
-				console.error('Failed to load challenges:', error);
-				container.innerHTML = `<p class="text-red-400">Failed to load challenges.</p>`;
-			}
+        		if (dailyChallenges.length === 0) {
+            		container.innerHTML = `
+                		<p class="text-gray-400">
+                    		No daily challenges available yet.
+                		</p>
+            		`;
+            		return;
+        		}
+
+        		container.innerHTML = dailyChallenges
+            		.map(challenge =>
+                		renderChallengeCard(
+                    		challenge,
+                    		streakMap[challenge.id]
+               	 		)
+            		)
+            		.join("");
+
+    		} catch (error) {
+        		console.error(error);
+
+        		container.innerHTML = `
+            		<p class="text-red-400">
+                		Failed to load challenges.
+            		</p>
+        		`;
+    		}
 		}
 
 		async function completeChallenge(challengeId) {
