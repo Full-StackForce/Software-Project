@@ -91,9 +91,9 @@ def accounts_page(step_name: str | None = None):
 def index_page():
     return FileResponse(Path("frontend") / "index.html")
 
-@app.get("/challanges")
+@app.get("/challenges")
 def challenges_page():
-    return FileResponse(Path("frontend") / "challanges.html")
+    return FileResponse(Path("frontend") / "challenges.html")
 
 @app.get("/dashboard")
 def dashboard_page():
