@@ -8,7 +8,6 @@
 - Diya Patel
 - Ananya Patchigolla
 - Sean Enohmbi
-- Mohamed Shire
 - Niahya Green
 
 ---
