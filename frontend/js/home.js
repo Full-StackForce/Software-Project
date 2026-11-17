@@ -370,13 +370,6 @@
         const chartProjectedLabel = document.getElementById('chartProjectedLabel');
         const chartActualPoints = document.getElementById('chartActualPoints');
 
-        function formatDurationValue(value, isHourBased) {
-            if (isHourBased) {
-                return Number(value || 0).toFixed(1);
-            }
-            return `${Math.round(Number(value || 0))}`;
-        }
-
         function toChartX(minutesIntoDay) {
             return Math.max(0, Math.min(500, (minutesIntoDay / 1440) * 500));
         }
@@ -626,32 +619,7 @@
             container.innerHTML = '';
 
             state.habits.forEach((habit, idx) => {
-                const card = document.createElement('div');
-                card.className = "bg-darkBg border border-panelBorder/80 rounded-2xl p-4 flex flex-col justify-between space-y-4";
-                
-                let valDisplay = "";
-                if (habit.type === 'checkbox') {
-                    valDisplay = habit.value ? "Completed" : "Pending";
-                } else if (habit.type === 'numeric') {
-                    valDisplay = `${habit.value} / ${habit.targetValue} ${habit.unit}`;
-                } else if (habit.type === 'duration') {
-                    valDisplay = `${formatDurationValue(habit.value, true)} / ${formatDurationValue(habit.targetValue, true)} hrs`;
-                }
-
-                card.innerHTML = `
-                    <div class="space-y-1">
-                        <div class="flex justify-between items-start">
-                            <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest font-mono">${habit.category}</span>
-                            ${habit.slug === 'hydration' || habit.slug === 'sleep' || habit.slug === 'workout' ? '' : '<button onclick="deleteHabit(' + idx + ')" class="text-gray-500 hover:text-red-400 text-xs font-bold hover:scale-105 transition-all">Delete</button>'}
-                        </div>
-                        <h4 class="text-sm font-bold text-white">${habit.name}</h4>
-                    </div>
-                    <div class="flex justify-between items-center bg-panelBg/60 p-2.5 rounded-xl border border-panelBorder/40">
-                        <span class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Value:</span>
-                        <span class="text-xs font-mono font-bold text-indigo-300">${valDisplay}</span>
-                    </div>
-                `;
-                container.appendChild(card);
+                container.appendChild(window.PulseApp.renderers.habitCard(habit, () => deleteHabit(idx)));
             });
 
             updatePulseScore();
@@ -672,54 +640,10 @@
             }
 
             state.habits.forEach((habit, idx) => {
-                const div = document.createElement('div');
-                div.className = "flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-xl bg-panelBg/80 border border-panelBorder/60 hover:bg-panelBg transition-all gap-3";
-
-                if (habit.type === 'checkbox') {
-                    div.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
-                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category}</span>
-                        </div>
-                        <div class="flex items-center gap-2 self-end sm:self-auto">
-                            <span class="text-[10px] text-gray-500 font-mono">${habit.value ? "Complete" : "Pending"}</span>
-                            <input type="checkbox" onchange="toggleCheckboxHabit(${idx})" ${habit.value ? 'checked' : ''} class="rounded border-gray-700 text-brandPurple focus:ring-brandPurple/40 w-5 h-5 bg-darkBg cursor-pointer">
-                        </div>
-                    `;
-                } else if (habit.type === 'numeric') {
-                    div.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
-                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (${habit.unit})</span>
-                        </div>
-                        <div class="flex items-center gap-3 self-end sm:self-auto">
-                            <span class="text-[11px] font-mono text-gray-300 font-bold">${habit.value}/${habit.targetValue}</span>
-                            <div class="flex gap-1.5">
-                                <button onclick="incrementHabitValue(${idx}, -1)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
-                                <button onclick="incrementHabitValue(${idx}, 1)" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
-                            </div>
-                        </div>
-                    `;
-                } else if (habit.type === 'duration') {
-                    const durationLabel = 'Hours';
-                    const durationUnit = 'hrs';
-                    const durationStep = 0.5;
-                    div.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="text-xs font-medium text-gray-300">${habit.name}</span>
-                            <span class="text-[9px] uppercase font-bold text-indigo-400 tracking-wider">${habit.category} (${durationLabel})</span>
-                        </div>
-                        <div class="flex items-center gap-3 self-end sm:self-auto">
-                            <span class="text-[11px] font-mono text-gray-300 font-bold">${formatDurationValue(habit.value, true)}/${formatDurationValue(habit.targetValue, true)} ${durationUnit}</span>
-                            <div class="flex gap-1.5">
-                                <button onclick="incrementHabitValue(${idx}, ${-durationStep})" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">-</button>
-                                <button onclick="incrementHabitValue(${idx}, ${durationStep})" class="w-6 h-6 rounded bg-darkBg border border-panelBorder text-xs hover:text-white transition-all flex items-center justify-center">+</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                container.appendChild(div);
+                container.appendChild(window.PulseApp.renderers.habitChecklistItem(habit, {
+                    onToggle: () => toggleCheckboxHabit(idx),
+                    onIncrement: amount => incrementHabitValue(idx, amount),
+                }));
             });
         }
 
@@ -816,33 +740,8 @@
             const container = document.getElementById('workoutHistoryContainer');
             container.innerHTML = '';
 
-            state.workouts.forEach((workout, idx) => {
-                const item = document.createElement('div');
-                item.className = "bg-darkBg border border-panelBorder/80 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-pulseGreen/30 transition-all";
-                
-                let iconColor = "text-pulseGreen bg-pulseGreen/10";
-
-                item.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="p-2.5 rounded-xl ${iconColor}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-sm font-bold text-white">${workout.type}</h4>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-0.5">${workout.notes ? workout.notes : 'No session notes provided.'}</p>
-                            <span class="text-[9px] font-mono text-gray-600 block mt-1">${new Date(workout.completed_at).toLocaleString()}</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-sm font-extrabold text-white font-mono block">${workout.duration_minutes}</span>
-                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block">Mins</span>
-                    </div>
-                `;
-                container.appendChild(item);
+            state.workouts.forEach(workout => {
+                container.appendChild(window.PulseApp.renderers.workoutCard(workout));
             });
 
             dashActiveDaysCount.innerHTML = `${state.workouts.length} <span class="text-xs font-normal text-gray-500">Sessions Logged</span>`;

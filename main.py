@@ -17,20 +17,27 @@ from routers import weight_log as weightLogRoute
 from dependencies.config import conf
 from dependencies.database import engine, Base
 from dependencies.migrations import ensure_auth_columns
+from dependencies.request_protection import (
+    REQUEST_HEADER,
+    REQUEST_HEADER_VALUE,
+    SAFE_METHODS,
+    document_request_protection,
+)
 from models.model_loader import load_models
 
 
 app = FastAPI()
+document_request_protection(app)
 
 
 @app.middleware("http")
 async def protect_browser_requests(request: Request, call_next):
-    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+    if request.method not in SAFE_METHODS:
         origin = request.headers.get("origin")
         expected_origin = str(request.base_url).rstrip("/")
         if (origin and origin != expected_origin) or request.headers.get("sec-fetch-site") == "cross-site":
             return JSONResponse(status_code=403, content={"detail": "Cross-origin changes are not allowed."})
-        if request.headers.get("x-pulsepoint-request") != "1":
+        if request.headers.get(REQUEST_HEADER) != REQUEST_HEADER_VALUE:
             return JSONResponse(status_code=403, content={"detail": "Missing request protection header."})
     response = await call_next(request)
     if not request.url.path.startswith("/frontend/"):

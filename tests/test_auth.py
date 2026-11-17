@@ -265,6 +265,48 @@ class AuthenticationTests(unittest.TestCase):
         self.signup(); self.login()
         self.assertEqual(self.client.get("/auth/me").headers["cache-control"],"no-store")
 
+    def test_openapi_documents_prefilled_header_for_every_mutation(self):
+        for _ in range(2):  # Repeated schema access must not duplicate headers.
+            schema = self.client.get("/openapi.json").json()
+            for path, operations in schema["paths"].items():
+                for method, operation in operations.items():
+                    headers = [
+                        parameter for parameter in operation.get("parameters", [])
+                        if parameter.get("in") == "header"
+                        and parameter["name"].lower() == "x-pulsepoint-request"
+                    ]
+                    with self.subTest(path=path, method=method):
+                        if method in {"post", "put", "patch", "delete"}:
+                            self.assertEqual(len(headers), 1)
+                            self.assertTrue(headers[0]["required"])
+                            self.assertEqual(headers[0]["schema"]["default"], "1")
+                            self.assertEqual(headers[0]["schema"]["enum"], ["1"])
+                        else:
+                            self.assertEqual(headers, [])
+
+    def test_documented_header_supports_login_and_authenticated_crud(self):
+        schema = self.client.get("/openapi.json").json()
+        parameter = next(
+            parameter for parameter in schema["paths"]["/auth/login"]["post"]["parameters"]
+            if parameter["name"] == "X-PulsePoint-Request"
+        )
+        # No test-client default headers: use exactly the value shown in /docs.
+        with TestClient(app) as client:
+            headers = {parameter["name"]: parameter["schema"]["default"]}
+            account = {"email": "docs@example.com", "password": PASSWORD}
+            self.assertEqual(client.post("/users/", json=account, headers=headers).status_code, 200)
+            self.assertEqual(client.post("/auth/login", json=account, headers=headers).status_code, 200)
+            response = client.post("/workouts/", json={
+                "type": "Cardio", "duration_minutes": 30, "mood_level": 3,
+            }, headers=headers)
+            self.assertEqual(response.status_code, 200, response.text)
+            path = f"/workouts/{response.json()['id']}"
+            self.assertEqual(client.put(path, json={"duration_minutes": 45}, headers=headers).status_code, 200)
+            self.assertEqual(client.delete(path, headers=headers).status_code, 200)
+            self.assertEqual(client.post("/auth/logout", headers=headers).status_code, 200)
+            self.assertEqual(client.get("/auth/me").status_code, 401)
+            self.assertEqual(client.post("/auth/login", json=account).status_code, 403)
+
     def test_https_cookie_is_secure(self):
         self.signup()
         with TestClient(app,base_url="https://testserver",headers=HEADERS) as client:
