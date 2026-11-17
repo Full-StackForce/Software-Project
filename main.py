@@ -1,10 +1,10 @@
 from pathlib import Path
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from routers import goal as goalRoute
 from routers import auth
@@ -16,19 +16,33 @@ from routers import dashboard as dashboardRoute
 from routers import weight_log as weightLogRoute
 from dependencies.config import conf
 from dependencies.database import engine, Base
+from dependencies.migrations import ensure_auth_columns
 from models.model_loader import load_models
 
 
 app = FastAPI()
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.middleware("http")
+async def protect_browser_requests(request: Request, call_next):
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        origin = request.headers.get("origin")
+        expected_origin = str(request.base_url).rstrip("/")
+        if (origin and origin != expected_origin) or request.headers.get("sec-fetch-site") == "cross-site":
+            return JSONResponse(status_code=403, content={"detail": "Cross-origin changes are not allowed."})
+        if request.headers.get("x-pulsepoint-request") != "1":
+            return JSONResponse(status_code=403, content={"detail": "Missing request protection header."})
+    response = await call_next(request)
+    if not request.url.path.startswith("/frontend/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.exception_handler(RequestValidationError)
+async def safe_validation_error(request: Request, exc: RequestValidationError):
+    # Pydantic's input/context may include passwords or the entire request body.
+    errors = [{key: error[key] for key in ("loc", "msg", "type")} for error in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": errors})
 
 app.include_router(goalRoute.router)
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -69,9 +83,10 @@ def initialize_database_schema() -> None:
     try:
         Base.metadata.create_all(bind=engine)
         ensure_user_profile_columns()
+        ensure_auth_columns(engine)
     except SQLAlchemyError as exc:
         # Keep the app bootable when DB is temporarily unavailable.
-        print(f"Warning: database initialization skipped: {exc}")
+        print("Warning: database initialization skipped; check local database availability and schema.")
 
 
 initialize_database_schema()

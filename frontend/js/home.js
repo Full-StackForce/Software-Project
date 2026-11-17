@@ -1,15 +1,13 @@
         const CHALLENGES_LOCKED = false;
-        const { API_BASE, session, storage } = window.PulseApp;
+        const { API_BASE, session, storage, apiFetch: fetch } = window.PulseApp;
 
         // Authentication Check - Redirect to login if not authenticated
-        const currentUserId = session.requireUser('/login');
+        let currentUserId = null;
         const currentUserName = storage.get(session.keys.userName, '');
         const currentUserEmail = storage.get(session.keys.userEmail, '');
         const currentUserStreak = Number(storage.get(session.keys.userStreak, 0) || 0);
 
-        if (!currentUserId) {
-            throw new Error('User session is required to load home page.');
-        }
+
         
         // Core Wellness Tracker Workspace State Storage
         const state = {
@@ -56,7 +54,7 @@
             streakCounter.textContent = `${currentUserStreak} ${currentUserStreak === 1 ? 'Day' : 'Days'}`;
 
             try {
-                const response = await fetch(`${API_BASE}/auth/me/${currentUserId}`);
+                const response = await fetch(`${API_BASE}/auth/me`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch user details: ${response.status}`);
                 }
@@ -195,7 +193,7 @@
         async function logWorkoutToBackend(workoutData) {
             try {
                 const payload = {
-                    user_id: currentUserId,
+
                     type: workoutData.type,
                     duration_minutes: workoutData.duration,
                     calories_burned: Math.round(workoutData.duration * 6.5),
@@ -252,7 +250,7 @@
         async function createHabitOnBackend(habitData) {
             try {
                 const payload = {
-                    user_id: currentUserId,
+
                     name: habitData.name,
                     category: habitData.category || 'custom',
                     unit: habitData.unit || 'count',
@@ -338,16 +336,9 @@
         // ==================== END API CLIENT FUNCTIONS ====================
 
         // Logout Function
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                storage.removeMany([
-                    session.keys.userId,
-                    session.keys.userName,
-                    session.keys.userEmail,
-                    session.keys.userStreak,
-                ]);
-                window.location.href = 'https://pulsepointtrain.com/login';
-            }
+        async function logout() {
+            try { await session.logout(); }
+            catch (error) { triggerNotification("Sign out failed", error.message); }
         }
 
         // Cache DOM elements
@@ -930,7 +921,7 @@
                     cardClass += " border-indigo-400/20 shadow-[0_0_20px_rgba(99,102,241,0.06)]";
                     iconWrapperClass = "w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-400/40 flex items-center justify-center relative";
                     indicatorTag = `<span class="text-[9px] uppercase tracking-wider text-pulseGreen font-bold font-mono">Unlocked</span>`;
-                    
+
                     svgBadgeMarkup = `
                         <svg class="w-8 h-8 text-indigo-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
@@ -940,7 +931,7 @@
                     cardClass += " opacity-60";
                     iconWrapperClass = "w-16 h-16 rounded-full bg-panelBg border border-dashed border-gray-700 flex items-center justify-center relative";
                     indicatorTag = `<span class="text-[9px] uppercase tracking-wider text-gray-500 font-bold font-mono">Locked</span>`;
-                    
+
                     svgBadgeMarkup = `
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -988,6 +979,8 @@
 
         // Initialize elements on load
         window.onload = async function() {
+            currentUserId = await session.requireUser('/login');
+            if (!currentUserId) return;
             applyInitialTabFromQuery();
             updateDateDisplay();
             renderDashboardChecklist();

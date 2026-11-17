@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="/frontend/css/common.css">
     <script src="/frontend/js/app-common.js"></script>
     <script>
-        const { storage } = window.PulseApp;
+        const { storage, apiFetch: fetch } = window.PulseApp;
         const PROFILE_STORAGE_MAP = {
             name: 'pulseName',
             email: 'pulseEmail',
-            password: 'pulsePassword',
             timezone: 'pulseTimezone',
             gender: 'pulseGender',
             heightCm: 'pulseHeightCm',
@@ -22,6 +21,7 @@
             activeDays: 'pulseActiveDays',
             hydration: 'pulseHydration'
         };
+        window.tailwind = window.tailwind || {};
         tailwind.config = {
             theme: {
                 extend: {
@@ -264,7 +264,7 @@
             profile: {
                 name: storage.get(PROFILE_STORAGE_MAP.name, ''),
                 email: storage.get(PROFILE_STORAGE_MAP.email, ''),
-                password: storage.get(PROFILE_STORAGE_MAP.password, ''),
+                password: '',
                 timezone: storage.get(PROFILE_STORAGE_MAP.timezone, 'UTC'),
                 gender: storage.get(PROFILE_STORAGE_MAP.gender, ''),
                 heightCm: storage.get(PROFILE_STORAGE_MAP.heightCm, ''),

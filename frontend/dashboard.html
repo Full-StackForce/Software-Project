@@ -314,15 +314,14 @@
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 	<script>
 		const API_BASE = window.PulseApp.API_BASE;
-		const userId = window.PulseApp.session.requireUser('/login');
+		let userId = null;
+		const { apiFetch: fetch } = window.PulseApp;
 		let workoutTrendChart;
 		let workoutTypeChart;
 		let habitCompareChart;
 		let weightTrendChart;
 
-		if (!userId) {
-			throw new Error('User session is required to load dashboard.');
-		}
+
 
 		function setProgress(prefix, pct) {
 			const value = Number(pct || 0);
@@ -574,7 +573,7 @@
 			try {
 				const [dashRes, meRes, workoutsRes, habitsRes, profileRes, weightLogsRes] = await Promise.all([
 					fetch(`${API_BASE}/dashboard/user/${userId}`),
-					fetch(`${API_BASE}/auth/me/${userId}`),
+					fetch(`${API_BASE}/auth/me`),
 					fetch(`${API_BASE}/workouts/user/${userId}`),
 					fetch(`${API_BASE}/habits/user/${userId}`),
 					fetch(`${API_BASE}/users/${userId}/details?fields=gender,height_cm,weight_kg,target_weight_kg`),
@@ -636,7 +635,10 @@
 			loadDashboard();
 		}
 
-		loadDashboard();
+		(async () => {
+			userId = await window.PulseApp.session.requireUser('/login');
+			if (userId) await loadDashboard();
+		})();
 	</script>
 </body>
 </html>
