@@ -11,6 +11,7 @@ class User(Base):
     username = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password = Column(String(255), nullable=False)
+    password_scheme = Column(String(30), nullable=False, default="argon2id")
     name = Column(String(100), nullable=True)
     timezone = Column(String(100), nullable=True)
     focus = Column(String(255), nullable=True)

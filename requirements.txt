@@ -8,4 +8,5 @@ PyMySQL==1.1.2
 python-dotenv
 pydantic-settings
 mysql-connector-python
+argon2-cffi==25.1.0
 

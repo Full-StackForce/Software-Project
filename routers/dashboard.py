@@ -1,12 +1,13 @@
+from dependencies.security import CurrentUser, require_same_user
 from datetime import date, timedelta
 
 from fastapi import APIRouter
 from sqlalchemy.orm import Session
 
 from controllers.dashboard_controller import get_dashboard
-from controllers.workout_controller import list_workouts, list_workouts_by_user
-from controllers.habit_controller import list_habits, list_habits_by_user
-from controllers.goal_controller import list_goals, list_goals_by_user
+from controllers.workout_controller import list_workouts_by_user
+from controllers.habit_controller import list_habits_by_user
+from controllers.goal_controller import list_goals_by_user
 from dependencies.database import SessionLocal
 from models.login_activity import LoginActivity
 from schemas.dashboard import DashboardResponse
@@ -42,15 +43,13 @@ def _calculate_login_streak(user_id: int) -> int:
 
 
 @router.get("/", response_model=DashboardResponse)
-def get_dashboard_route():
-    workouts = list_workouts()
-    habits = list_habits()
-    goals = list_goals()
-    return get_dashboard(workouts, habits, goals, current_streak_days=0)
+def get_dashboard_route(user: CurrentUser):
+    return get_user_dashboard(user.id, user)
 
 
 @router.get("/user/{user_id}", response_model=DashboardResponse)
-def get_user_dashboard(user_id: int):
+def get_user_dashboard(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     workouts = list_workouts_by_user(user_id)
     habits = list_habits_by_user(user_id)
     goals = list_goals_by_user(user_id)

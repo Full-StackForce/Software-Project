@@ -5,6 +5,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from dependencies.database import SessionLocal
+from dependencies.security import hash_password
+from models.auth_session import AuthSession
 from models.user import User
 from models.weight_log import WeightLog
 from schemas.user import UserCreate, UserUpdate
@@ -31,7 +33,8 @@ def create_user(payload: UserCreate) -> User:
         db_user = User(
             username=username,
             email=payload.email,
-            password=payload.password,
+            password=hash_password(payload.password),
+            password_scheme="argon2id",
             name=name,
             timezone=timezone,
             focus=focus,
@@ -44,8 +47,7 @@ def create_user(payload: UserCreate) -> User:
             hydration_goal=hydration_goal,
         )
         db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
+        db.flush()
 
         # Seed the first weight log so trend analysis has an initial baseline.
         db.add(WeightLog(user_id=db_user.id, log_date=date.today(), weight_kg=weight_kg))
@@ -81,6 +83,13 @@ def update_user(user_id: int, payload: UserUpdate) -> User | None:
             return None
 
         updates = payload.model_dump(exclude_unset=True)
+        if "password" in updates:
+            password = updates.pop("password")
+            if password is None:
+                raise HTTPException(status_code=422, detail="Password cannot be null.")
+            updates["password"] = hash_password(password)
+            updates["password_scheme"] = "argon2id"
+            db.query(AuthSession).filter(AuthSession.user_id == user_id).delete()
         if "email" in updates:
             existing_user = db.query(User).filter(User.email == updates["email"], User.id != user_id).first()
             if existing_user:

@@ -152,15 +152,13 @@
 
 	<script src="/frontend/js/app-common.js"></script>
 	<script>
-		const { API_BASE, session, storage } = window.PulseApp;
-		const currentUserId = session.requireUser('/login');
+		const { API_BASE, session, storage, apiFetch: fetch } = window.PulseApp;
+		let currentUserId = null;
 		const currentUserName = storage.get(session.keys.userName, '');
 		const currentUserEmail = storage.get(session.keys.userEmail, '');
 		const currentUserStreak = Number(storage.get(session.keys.userStreak, 0) || 0);
 
-		if (!currentUserId) {
-			throw new Error('User session is required to load challenges page.');
-		}
+
 
 		async function loadActiveUserName() {
 			const fallbackName = currentUserName || currentUserEmail || 'Unknown User';
@@ -171,7 +169,7 @@
 			streakCounter.textContent = `${currentUserStreak} ${currentUserStreak === 1 ? 'Day' : 'Days'}`;
 
 			try {
-				const response = await fetch(`${API_BASE}/auth/me/${currentUserId}`);
+				const response = await fetch(`${API_BASE}/auth/me`);
 				if (!response.ok) {
 					throw new Error(`Failed to fetch user details: ${response.status}`);
 				}
@@ -194,17 +192,10 @@
 			}
 		}
 
-		function logout() {
-			if (confirm('Are you sure you want to logout?')) {
-				storage.removeMany([
-					session.keys.userId,
-					session.keys.userName,
-					session.keys.userEmail,
-					session.keys.userStreak,
-				]);
-				window.location.href = 'https://pulsepointtrain.com/login';
-			}
-		}
+		async function logout() {
+            try { await session.logout(); }
+            catch (error) { alert(error.message); }
+        }
 
 		function renderChallengeCard(challenge, streakInfo) {
 			const completed = streakInfo?.completed_today || false;
@@ -367,10 +358,12 @@
 			}
 		}
 
-		loadActiveUserName();
-		loadChallenges();
-		loadStats();
-		loadWeeklyChallenge();
+        (async () => {
+            currentUserId = await session.requireUser('/login');
+            if (!currentUserId) return;
+            await loadActiveUserName();
+            await Promise.all([loadChallenges(), loadStats(), loadWeeklyChallenge()]);
+        })();
 	</script>
 </body>
 </html>

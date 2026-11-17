@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class GoalCreate(BaseModel):
-    user_id: int = Field(..., example=1)
+    user_id: int | None = Field(None, json_schema_extra={"deprecated": True}, description="Ignored; ownership comes from the signed-in session.")
     title: str = Field(..., example="Complete 5 workouts")
     description: str = Field(..., example="Build a consistent weekly routine")
     goal_type: str = Field(..., example="habit_completed_today")

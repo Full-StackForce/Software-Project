@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class HabitCreate(BaseModel):
-    user_id: int = Field(..., example=1)
+    user_id: int | None = Field(None, json_schema_extra={"deprecated": True}, description="Ignored; ownership comes from the signed-in session.")
     name: str = Field(..., example="Drink water")
     category: str = Field(default="custom", example="wellness")
     unit: str = Field(default="count", example="cups")

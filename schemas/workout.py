@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class WorkoutCreate(BaseModel):
-    user_id: int = Field(..., example=1)
+    user_id: int | None = Field(None, json_schema_extra={"deprecated": True}, description="Ignored; ownership comes from the signed-in session.")
     type: str = Field(..., example="Cardio")
     duration_minutes: int = Field(..., example=45)
     calories_burned: int| None = Field(None, example=320)

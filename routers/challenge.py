@@ -1,3 +1,4 @@
+from dependencies.security import CurrentUser, require_same_user
 from typing import List
 
 from fastapi import APIRouter
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/challenges")
 
 
 @router.get("/", response_model=List[ChallengeResponse])
-def list_challenges():
+def list_challenges(user: CurrentUser):
     db: Session = SessionLocal()
     try:
         return challenge_controller.get_all_challenges(db)
@@ -26,7 +27,8 @@ def list_challenges():
 
 
 @router.post("/{challenge_id}/complete/{user_id}", response_model=ChallengeCompleteResponse)
-def complete_challenge(challenge_id: int, user_id: int):
+def complete_challenge(challenge_id: int, user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     db: Session = SessionLocal()
     try:
         return challenge_controller.complete_challenge(db, user_id, challenge_id)
@@ -35,7 +37,8 @@ def complete_challenge(challenge_id: int, user_id: int):
 
 
 @router.get("/streaks/{user_id}", response_model=List[ChallengeStreakResponse])
-def get_streaks(user_id: int):
+def get_streaks(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     db: Session = SessionLocal()
     try:
         return challenge_controller.get_user_challenge_streaks(db, user_id)
@@ -43,7 +46,8 @@ def get_streaks(user_id: int):
         db.close()
 
 @router.get("/stats/{user_id}", response_model=ChallengeStatsResponse)
-def get_stats(user_id: int):
+def get_stats(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     db: Session = SessionLocal()
     try:
         return challenge_controller.get_user_stats(db, user_id)
@@ -52,7 +56,8 @@ def get_stats(user_id: int):
 
 
 @router.get("/weekly/{user_id}", response_model=List[WeeklyChallengeResponse])
-def get_weekly(user_id: int):
+def get_weekly(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     db: Session = SessionLocal()
     try:
         return challenge_controller.get_weekly_challenges(db, user_id)
@@ -61,7 +66,8 @@ def get_weekly(user_id: int):
 
 
 @router.post("/weekly/{challenge_id}/progress/{user_id}", response_model=WeeklyChallengeResponse)
-def update_weekly(challenge_id: int, user_id: int, increment: float):
+def update_weekly(challenge_id: int, user_id: int, increment: float, user: CurrentUser):
+    require_same_user(user_id, user)
     db: Session = SessionLocal()
     try:
         return challenge_controller.update_weekly_progress(db, user_id, challenge_id, increment)

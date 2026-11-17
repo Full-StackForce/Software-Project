@@ -1,7 +1,8 @@
+from dependencies.security import CurrentUser, require_same_user
 from fastapi import APIRouter, HTTPException, Query
 from typing import Any, List
 
-from controllers.user_controller import create_user, delete_user, get_user, list_users, update_user
+from controllers.user_controller import create_user, delete_user, get_user, update_user
 from schemas.user import UserCreate, UserResponse, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -13,12 +14,13 @@ def create_user_route(payload: UserCreate):
 
 
 @router.get("/", response_model=List[UserResponse])
-def get_users():
-    return list_users()
+def get_users(user: CurrentUser):
+    return [user]
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user_route(user_id: int):
+def get_user_route(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     user = get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -26,7 +28,8 @@ def get_user_route(user_id: int):
 
 
 @router.get("/{user_id}/details")
-def get_user_details_route(user_id: int, fields: str | None = Query(default=None, description="Comma-separated user fields, for example: name,email")) -> dict[str, Any]:
+def get_user_details_route(user_id: int, current_user: CurrentUser, fields: str | None = Query(default=None, description="Comma-separated user fields, for example: name,email")) -> dict[str, Any]:
+    require_same_user(user_id, current_user)
     user = get_user(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -60,7 +63,8 @@ def get_user_details_route(user_id: int, fields: str | None = Query(default=None
 
 
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user_route(user_id: int, payload: UserUpdate):
+def update_user_route(user_id: int, payload: UserUpdate, current_user: CurrentUser):
+    require_same_user(user_id, current_user)
     user = update_user(user_id, payload)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -68,7 +72,8 @@ def update_user_route(user_id: int, payload: UserUpdate):
 
 
 @router.delete("/{user_id}")
-def delete_user_route(user_id: int):
+def delete_user_route(user_id: int, user: CurrentUser):
+    require_same_user(user_id, user)
     if not delete_user(user_id):
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted"}
