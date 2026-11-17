@@ -48,6 +48,8 @@ Open `http://127.0.0.1:8000/`. Use the same hostname throughout a session; brows
 - `POST /auth/logout`: revoke the presenting session, with the header; safe to repeat.
 - Personal APIs: send the cookie; send the header on POST/PUT/DELETE. Command-line clients must retain the login cookie and supply the header too. No API token belongs in localStorage.
 
+At `http://127.0.0.1:8000/docs`, each POST/PUT/DELETE operation now shows the required `X-PulsePoint-Request` header with `1` prefilled. Execute signup or login first, then use the same browser tab/hostname for personal endpoints; the browser sends the HttpOnly session cookie automatically. This public header value does not replace authentication. Keep it set to `1`; missing/incorrect headers and cross-origin changes remain blocked.
+
 ## Verification
 
 Install test-only dependencies and run in a fresh process:
@@ -62,6 +64,8 @@ The suite replaces the engine and rebinds the session factory **before** importi
 Coverage includes valid/invalid/duplicate signup, correct/incorrect/unknown login, explicit legacy transition, hash-as-password rejection, cookie attributes, token digest storage, token rotation, expiration, forged sessions, logout replay, password-change revocation, unauthenticated personal APIs, cross-user reads/updates/deletes, forged ownership, scoped collections/dashboard totals, allowed owner operations, response secrecy, request protection, and repeatable migration.
 
 The final test result and browser findings are recorded in [the Step 2 verification record](authentication-verification.md). This focused authentication suite starts the testing work; the broader persistence, validation, reset, and calculation suite in Step 4 remains pending.
+
+The later [review fixes](review-fixes.md) add saved-text rendering and API documentation regressions. The rendering check uses an installed Chrome/Chromium with a temporary profile and a self-contained local HTML fixture, without a server or database. Set `PULSEPOINT_TEST_CHROME` to the executable path when Chrome is installed elsewhere. The test explicitly reports a skip if no compatible browser is found.
 
 ## Remaining scope
 

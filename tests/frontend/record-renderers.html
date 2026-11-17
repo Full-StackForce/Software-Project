@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<title>PulsePoint record rendering regression checks</title>
+<body>
+  <main id="fixtures"></main>
+  <pre id="results">pending</pre>
+  <script>window.PulseApp = {};</script>
+  <!-- The Python runner inserts the actual renderer source here. -->
+  <!-- RENDERERS -->
+  <script>
+    const results = [];
+    const fixtures = document.getElementById("fixtures");
+    const { habitCard, habitChecklistItem, workoutCard } = window.PulseApp.renderers;
+    window.injected = false;
+    const payload = '<img src="invalid" onerror="window.injected=true"><svg onload="window.injected=true"> & "quoted"';
+
+    function check(name, condition) {
+      results.push({ name, passed: Boolean(condition) });
+    }
+
+    function isTextOnly(root) {
+      return root.querySelectorAll("img, script, [onerror], [onload]").length === 0;
+    }
+
+    for (const type of ["checkbox", "numeric", "duration"]) {
+      const habit = {
+        name: payload, category: payload, unit: payload, slug: "custom",
+        type, value: type === "checkbox" ? false : 2, targetValue: 8,
+      };
+      let deleted = false;
+      const card = habitCard(habit, () => { deleted = true; });
+      fixtures.appendChild(card);
+      check(`${type} card displays literal name`, card.querySelector('[data-field="name"]').textContent === payload);
+      check(`${type} card displays literal category`, card.querySelector('[data-field="category"]').textContent === payload);
+      check(`${type} card does not parse saved markup`, isTextOnly(card));
+      card.querySelector("button").click();
+      check(`${type} delete callback works`, deleted);
+      if (type === "numeric") {
+        check("numeric unit is literal text", card.querySelector('[data-field="value"]').textContent === `2 / 8 ${payload}`);
+      }
+
+      let toggled = false;
+      const increments = [];
+      const row = habitChecklistItem(habit, {
+        onToggle: () => { toggled = true; },
+        onIncrement: amount => increments.push(amount),
+      });
+      fixtures.appendChild(row);
+      check(`${type} checklist displays literal name`, row.querySelector('[data-field="name"]').textContent === payload);
+      check(`${type} checklist does not parse saved markup`, isTextOnly(row));
+      if (type === "checkbox") {
+        const checkbox = row.querySelector("input");
+        check("checkbox starts unchecked", !checkbox.checked);
+        checkbox.click();
+        check("checkbox callback works", toggled && checkbox.checked);
+      } else {
+        row.querySelector('[data-action="decrease"]').click();
+        row.querySelector('[data-action="increase"]').click();
+        const step = type === "duration" ? 0.5 : 1;
+        check(`${type} increment callbacks work`, JSON.stringify(increments) === JSON.stringify([-step, step]));
+      }
+    }
+
+    const core = habitCard({ slug: "hydration", type: "numeric", name: "Water", value: 1, targetValue: 2, unit: "L" }, () => {});
+    check("core habits have no delete button", core.querySelector("button") === null);
+    const duration = habitCard({ type: "duration", name: "Sleep", value: 7.5, targetValue: 8 }, () => {});
+    check("duration formatting preserved", duration.querySelector('[data-field="value"]').textContent === "7.5 / 8.0 hrs");
+
+    const workout = { type: payload, notes: payload, duration_minutes: 30, completed_at: "2026-11-17T12:00:00" };
+    const card = workoutCard(workout);
+    fixtures.appendChild(card);
+    check("workout type is literal text", card.querySelector('[data-field="type"]').textContent === payload);
+    check("workout notes are literal text", card.querySelector('[data-field="notes"]').textContent === payload);
+    check("workout does not parse saved markup", isTextOnly(card));
+    check("workout duration preserved", card.querySelector('[data-field="duration"]').textContent === "30");
+    const empty = workoutCard({ ...workout, notes: null });
+    check("missing notes keep fallback", empty.querySelector('[data-field="notes"]').textContent === "No session notes provided.");
+    check("no injected handler executed", window.injected === false);
+    document.getElementById("results").textContent = JSON.stringify(results);
+  </script>
+</body>
+</html>
